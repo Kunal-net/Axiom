@@ -30,6 +30,12 @@ echo ""
 echo "--> 3. Running TypeScript & Vite Production Build..."
 npm run build
 
+if [ -f "backend/.venv/bin/pytest" ]; then
+  echo ""
+  echo "--> 4. Running Backend Test Suite (Pytest)..."
+  PYTHONPATH=. ./backend/.venv/bin/pytest backend/tests -q
+fi
+
 echo ""
 echo "========================================================"
 echo " [Axiom CI/CD] All verification checks passed successfully!"
