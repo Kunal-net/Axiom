@@ -11,6 +11,7 @@
 # Python virtual environments & caches (if backend/tooling is added)
 .venv/
 venv/
+backend/.venv/
 ENV/
 env/
 __pycache__/
@@ -19,6 +20,10 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.local_uploads/
+*.db
+*.sqlite
+*.sqlite3
 
 # JavaScript/TypeScript dependencies & build outputs
 node_modules/

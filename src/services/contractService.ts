@@ -175,8 +175,11 @@ class ContractService {
   /**
    * Get legal comparison diffs between two contract versions
    */
-  public async getComparisonDiffs(originalDocId?: string, revisedDocId?: string): Promise<DocumentDiff[]> {
-    if (!this.isMock && originalDocId && revisedDocId) {
+  public async getComparisonDiffs(
+    originalDocId: string = 'doc-msa-fintech',
+    revisedDocId: string = 'doc-msa-counter'
+  ): Promise<DocumentDiff[]> {
+    if (!this.isMock) {
       try {
         const response = await apiClient.post<DocumentComparisonResponse>('/documents/compare', {
           originalDocId,

@@ -67,21 +67,34 @@ The frontend is a single-page application built on React 19 and Vite 8, utilizin
 
 ---
 
-## 3. Proposed Backend Architecture (Member 2 Domain)
+## 3. Backend Architecture (Member 2 Domain — Completed & Verified)
 
-*Status: Architecture Proposed — Implementation Pending.*
+*Status: Implemented & Verified with 21 passing automated unit and integration tests.*
 
-The proposed backend will reside in a dedicated `backend/` directory:
-- **Framework Recommendation:** FastAPI (Python 3.11+) or Express (Node.js / TypeScript). FastAPI is recommended for direct compatibility with Python-based AI/ML extraction libraries.
-- **Persistence:** Relational database (PostgreSQL recommended; SQLite for local development).
-- **Core Endpoints:**
-  - `POST /api/v1/documents/upload` — Multipart file upload (PDF/DOCX, <= 25 MB).
-  - `POST /api/v1/documents/{id}/analyze` — Initiate clause extraction and risk analysis.
-  - `GET /api/v1/documents/{id}` — Fetch document metadata, parsed clauses, and severity counts.
-  - `GET /api/v1/documents` — List user documents with search, sorting, and pagination.
-  - `POST /api/v1/documents/compare` — Compare original and revised drafts.
-  - `GET /api/v1/user/profile` & `PUT /api/v1/user/profile` — User settings and liability calibration.
-- **Security:** JWT bearer authentication, rate limiting, and CORS restrictions (`CORS_ORIGINS`).
+The production-ready backend resides in the `backend/` directory:
+- **Framework:** FastAPI (Python 3.11–3.14 compatible), Uvicorn server, Pydantic v2 validation.
+- **Persistence:** Relational database with PostgreSQL 16 (and SQLite for fast ephemeral tests), SQLAlchemy 2.0 ORM, and Alembic schema migrations.
+- **Data Models:**
+  - `User`: User profile, credentials (Argon2id hash), risk threshold preferences, and retention days.
+  - `Document`: Contract document metadata, ownership, SHA-256 checksum, opaque storage key, status (`uploaded`, `processing`, `needs_review`, `completed`, `failed`), extracted text, and timestamps.
+  - `Analysis`: Versioned analysis record, schema version, risk count totals, and structured JSON results.
+  - `ClauseFinding`: Flagged clauses with risk severity (`high`, `medium`, `low`, `info`), verbatim original text, plain-English commercial explanations, balanced redline counter-proposals, and review/bookmark tags.
+- **Storage Service:** Opaque private storage with path traversal defense (`../` attack prevention) storing raw contract files outside the public web root.
+- **Text Extraction:** Multi-format extractor supporting `.pdf` (`pypdf`) and `.docx` (`python-docx`).
+- **Core Endpoints:** Fully aligned with `docs/API.md` and frontend `src/services/contractService.ts`:
+  - `GET /api/v1/health` — Service liveness and database connection readiness.
+  - `POST /api/v1/auth/register` & `POST /api/v1/auth/login` — Account creation and JWT authentication.
+  - `GET /api/v1/me` — Authenticated identity retrieval.
+  - `POST /api/v1/documents/upload` (and alias `POST /api/v1/documents`) — Multipart file upload (PDF/DOCX <= 25 MB).
+  - `POST /api/v1/documents/{id}/analyze` (and alias `POST /api/v1/documents/{id}/reanalyze`) — Risk scoring and redline synthesis.
+  - `GET /api/v1/documents/{id}` — Full contract document with clauses and findings.
+  - `GET /api/v1/documents/{id}/analysis` — Structured analysis JSON.
+  - `GET /api/v1/documents` — User document listing with pagination and status filters.
+  - `PATCH /api/v1/documents/{id}/clauses/{clauseId}` — Clause reviewed/bookmarked toggle.
+  - `POST /api/v1/documents/compare` — Legal diff comparison.
+  - `GET /api/v1/user/profile` & `PUT /api/v1/user/profile` — User profile preferences.
+  - `DELETE /api/v1/documents/{id}` — Permanent document and storage deletion.
+- **Security:** Strict cross-user ownership isolation, Argon2id password hashing, JWT bearer auth (with local demo user fallback in development mode), Request-ID tracing, and no-leak standardized error envelopes.
 
 ---
 
