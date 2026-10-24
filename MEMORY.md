@@ -40,5 +40,7 @@
 
 ## 4. Update Log
 
+- **2026-10-24 (Backend Integration Preparation):** Inspected frontend service layer and mapped screens to REST endpoints. Created `src/services/apiClient.ts` with standardized timeout and `ApiError` handling. Enhanced `src/services/contractService.ts` to seamlessly route to live endpoints when `VITE_USE_MOCK_DATA=false` while maintaining 100% mock fidelity when true. Updated `docs/API.md` with clause patch, document delete, and health check endpoints. Verified with 9/9 passing tests.
 - **2026-10-24 (Organization & Foundation):** Completed comprehensive project organization for 3-member team. Removed redundant `axiom_project_essentials/` folder. Created `TASKS.md`, `scripts/verify.sh`, and `docs/WORKFLOW.md`. Updated `README.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `AGENTS.md`, and `docs/API.md`. Cleaned all lingering Oxlint warnings across pages to achieve 0 warnings and 0 errors on `npm run verify`.
 - **2026-10-22 (Bootstrap & Skills):** Discovered and loaded design taste skills (`design-taste-frontend`, `gpt-taste`, `stitch-design-taste`). Verified all 8 canonical screens.
+

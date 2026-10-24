@@ -45,4 +45,11 @@ describe('ContractService (Bootstrap & Workflow Readiness)', () => {
     expect(profile).toHaveProperty('riskSensitivity');
     expect(profile).toHaveProperty('explanationStyle');
   });
+
+  it('reports mock mode status and provides health probe', async () => {
+    expect(contractService.isMock).toBe(true);
+    const health = await contractService.checkHealth();
+    expect(health).toBeDefined();
+    expect(health?.status).toBe('mock_active');
+  });
 });

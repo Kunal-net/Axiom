@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   Share2, 
@@ -10,15 +10,25 @@ import {
   Printer
 } from 'lucide-react';
 import { PRIMARY_CONTRACT } from '../data/sampleContracts';
+import { ContractDocument } from '../types/contract';
+import { contractService } from '../services/contractService';
 
 interface ReportPageProps {
   docId?: string;
   onNavigate: (route: string, docId?: string) => void;
 }
 
-export const ReportPage: React.FC<ReportPageProps> = ({ docId: _docId, onNavigate }) => {
+export const ReportPage: React.FC<ReportPageProps> = ({ docId, onNavigate }) => {
+  const [document, setDocument] = useState<ContractDocument>(PRIMARY_CONTRACT);
 
-  const document = PRIMARY_CONTRACT;
+  useEffect(() => {
+    if (docId) {
+      contractService.getDocumentById(docId).then((doc) => {
+        if (doc) setDocument(doc);
+      });
+    }
+  }, [docId]);
+
   const [copiedRevisionId, setCopiedRevisionId] = useState<string | null>(null);
   const [copiedShareLink, setCopiedShareLink] = useState(false);
   const [activeTab, setActiveTab] = useState<'findings' | 'recommendations' | 'details'>('findings');

@@ -45,7 +45,14 @@ Uploads a contract file for parsing and enclave staging.
     "lastAnalyzedAt": "Pending",
     "status": "processing",
     "pageCount": 4,
-    "summary": "Document uploaded successfully and queued for enclave analysis."
+    "summary": "Document uploaded successfully and queued for enclave analysis.",
+    "riskCounts": {
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "info": 0
+    },
+    "clauses": []
   }
   ```
 
@@ -186,6 +193,51 @@ Gets or updates user risk thresholds, explanation tone, and retention settings.
     "documentRetentionDays": 30,
     "emailNotifications": true,
     "highRiskAlerts": true
+  }
+  ```
+
+---
+
+### 2.7. Update Clause Review / Bookmark State
+Updates the review or bookmark status of a specific clause in an analyzed document.
+
+- **Endpoint:** `PATCH /api/v1/documents/{id}/clauses/{clauseId}`
+- **Request Body:**
+  ```json
+  {
+    "reviewed": true,
+    "bookmarked": false
+  }
+  ```
+- **Response `200 OK`:**
+  ```json
+  {
+    "id": "clause-1",
+    "reviewed": true,
+    "bookmarked": false
+  }
+  ```
+
+---
+
+### 2.8. Delete Document
+Permanently removes a document and its associated findings from user history and storage.
+
+- **Endpoint:** `DELETE /api/v1/documents/{id}`
+- **Response `204 No Content`**
+
+---
+
+### 2.9. Service Health & Readiness Probe
+Lightweight endpoint for frontend startup connectivity verification.
+
+- **Endpoint:** `GET /api/v1/health`
+- **Response `200 OK`:**
+  ```json
+  {
+    "status": "healthy",
+    "version": "1.0.0",
+    "timestamp": "2026-10-24T10:30:00Z"
   }
   ```
 

@@ -72,3 +72,28 @@ export interface UserProfile {
   highRiskAlerts: boolean;
 }
 
+export interface DocumentListResponse {
+  documents: ContractDocument[];
+  totalCount: number;
+  page: number;
+  limit: number;
+}
+
+export interface DocumentComparisonResponse {
+  comparisonId: string;
+  originalDocId: string;
+  revisedDocId: string;
+  diffs: DocumentDiff[];
+}
+
+export interface AnalysisInitiateRequest {
+  riskSensitivity?: 'standard' | 'strict' | 'relaxed';
+  explanationStyle?: 'plain_english' | 'balanced' | 'legal_formal';
+  autoGenerateRedlines?: boolean;
+}
+
+export interface ApiErrorDetail {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
