@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Newsreader", Georgia, Cambria, serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --color-axiom-bg: #F7F4EE;
+  --color-axiom-surface: #FFFDFA;
+  --color-axiom-surface-secondary: #F0ECE4;
+  --color-axiom-surface-hover: #EAE5DC;
+  --color-axiom-border: #E6E0D6;
+
+  --color-axiom-text: #1D1B18;
+  --color-axiom-text-secondary: #716B63;
+  --color-axiom-text-muted: #979087;
+
+  --color-axiom-primary: #1C1B19;
+  --color-axiom-primary-hover: #34312C;
+  --color-axiom-primary-fg: #FFFFFF;
+
+  --color-risk-high-bg: #FCE4DF;
+  --color-risk-high-text: #A83224;
+  --color-risk-high-border: #F7C6BE;
+
+  --color-risk-medium-bg: #FFF0D8;
+  --color-risk-medium-text: #92530C;
+  --color-risk-medium-border: #F5DEC2;
+
+  --color-risk-low-bg: #E1EFE4;
+  --color-risk-low-text: #286344;
+  --color-risk-low-border: #C6DFC9;
+
+  --color-risk-info-bg: #E5EBF5;
+  --color-risk-info-text: #365B91;
+  --color-risk-info-border: #C7D7EC;
+}
+
+@layer base {
+  * {
+    border-color: #E6E0D6;
+  }
+  body {
+    background-color: #F7F4EE;
+    color: #1D1B18;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, .font-editorial {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Double-Bezel (Doppelrand) hardware aesthetic */
+.double-bezel {
+  padding: 6px;
+  background-color: rgba(28, 27, 25, 0.04);
+  border: 1px solid rgba(230, 224, 214, 0.9);
+  border-radius: 1.25rem;
+}
+
+.double-bezel-inner {
+  background-color: #FFFDFA;
+  border-radius: calc(1.25rem - 6px);
+  border: 1px solid rgba(230, 224, 214, 0.6);
+  box-shadow: 0 1px 3px rgba(29, 27, 24, 0.04), 0 4px 16px rgba(29, 27, 24, 0.02);
+}
+
+/* Warm diffused whisper shadow */
+.shadow-whisper {
+  box-shadow: 0 1px 2px rgba(29, 27, 24, 0.04), 0 4px 16px -2px rgba(29, 27, 24, 0.04);
+}
+
+.shadow-elevation {
+  box-shadow: 0 4px 20px -2px rgba(29, 27, 24, 0.08), 0 1px 4px rgba(29, 27, 24, 0.04);
+}
+
+/* Glassmorphic warm nav */
+.glass-warm {
+  background-color: rgba(247, 244, 238, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(230, 224, 214, 0.85);
+}
+
+/* Nested CTA tactile button */
+.btn-nested {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #1C1B19;
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 0.5rem 0.625rem 0.5rem 1.25rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.btn-nested:hover {
+  background-color: #34312C;
+  transform: translateY(-1px);
+}
+
+.btn-nested:active {
+  transform: scale(0.98);
+}
+
+.btn-nested-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.btn-nested:hover .btn-nested-icon {
+  transform: translateX(2px);
+}
+
+/* Respect reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

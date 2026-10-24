@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-error-container": "#93000a",
+          "primary-fixed": "#e6e2de",
+          "on-primary": "#ffffff",
+          "surface-bright": "#fdf8f7",
+          "on-secondary-fixed-variant": "#4b463f",
+          "inverse-primary": "#cac6c2",
+          "info-bg": "#E5EBF5",
+          "error": "#ba1a1a",
+          "primary-fixed-dim": "#cac6c2",
+          "risk-low-bg": "#E1EFE4",
+          "secondary-fixed": "#eae1d7",
+          "tertiary-container": "#1c1b1c",
+          "info-border": "#C7D7EC",
+          "outline": "#7a776f",
+          "surface-container-highest": "#e6e2e1",
+          "surface": "#FFFDFA",
+          "risk-medium-text": "#92530C",
+          "on-tertiary": "#ffffff",
+          "primary-hover": "#34312C",
+          "info-text": "#365B91",
+          "risk-high-text": "#A83224",
+          "on-tertiary-fixed-variant": "#484647",
+          "tertiary-fixed-dim": "#c9c5c6",
+          "risk-high-bg": "#FCE4DF",
+          "on-tertiary-container": "#868384",
+          "surface-container-lowest": "#ffffff",
+          "error-container": "#ffdad6",
+          "on-secondary": "#ffffff",
+          "on-primary-container": "#868380",
+          "secondary-container": "#eae1d7",
+          "primary": "#000000",
+          "background": "#F7F4EE",
+          "on-background": "#1c1b1b",
+          "surface-container-high": "#ebe7e6",
+          "text-secondary": "#716B63",
+          "secondary": "#635e56",
+          "on-tertiary-fixed": "#1c1b1c",
+          "risk-medium-bg": "#FFF0D8",
+          "tertiary": "#000000",
+          "text-primary": "#1D1B18",
+          "risk-low-text": "#286344",
+          "on-error": "#ffffff",
+          "on-secondary-fixed": "#1f1b15",
+          "surface-container": "#f1edec",
+          "risk-medium-border": "#F5DEC2",
+          "on-surface-variant": "#494740",
+          "inverse-surface": "#313030",
+          "border": "#E6E0D6",
+          "text-muted": "#979087",
+          "risk-low-border": "#C6DFC9",
+          "outline-variant": "#cbc6bd",
+          "on-secondary-container": "#69635c",
+          "primary-container": "#1c1b19",
+          "on-primary-fixed": "#1c1b19",
+          "surface-hover": "#EAE5DC",
+          "surface-secondary": "#F0ECE4",
+          "on-surface": "#1c1b1b",
+          "on-primary-fixed-variant": "#484644",
+          "secondary-fixed-dim": "#cdc5bc",
+          "surface-container-low": "#f7f3f2",
+          "surface-dim": "#ddd9d8",
+          "risk-high-border": "#F7C6BE",
+          "surface-tint": "#605e5b",
+          "surface-variant": "#e6e2e1",
+          "inverse-on-surface": "#f4f0ef",
+          "tertiary-fixed": "#e6e1e2"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "margin": "2.5rem",
+          "margin-mobile": "1rem",
+          "gutter": "1.5rem",
+          "space-sm": "0.5rem",
+          "space-lg": "1.5rem",
+          "space-md": "1rem",
+          "gutter-mobile": "1rem"
+        },
+        "fontFamily": {
+          "page-heading": [
+            "Newsreader"
+          ],
+          "card-heading": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "hero": [
+            "Newsreader"
+          ],
+          "hero-mobile": [
+            "Newsreader"
+          ],
+          "body": [
+            "Inter"
+          ],
+          "metadata": [
+            "Inter"
+          ],
+          "section-heading": [
+            "Newsreader"
+          ],
+          "body-secondary": [
+            "Inter"
+          ]
+        },
+        "fontSize": {
+          "page-heading": [
+            "40px",
+            {
+              "lineHeight": "48px",
+              "letterSpacing": "-0.025em",
+              "fontWeight": "400"
+            }
+          ],
+          "card-heading": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "500"
+            }
+          ],
+          "label-sm": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "500"
+            }
+          ],
+          "hero": [
+            "72px",
+            {
+              "lineHeight": "72px",
+              "letterSpacing": "-0.045em",
+              "fontWeight": "400"
+            }
+          ],
+          "hero-mobile": [
+            "40px",
+            {
+              "lineHeight": "44px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "400"
+            }
+          ],
+          "body": [
+            "15px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "metadata": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ],
+          "section-heading": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "400"
+            }
+          ],
+          "body-secondary": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body text-body text-text-primary antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-64 bg-surface z-50 flex flex-col justify-between py-6 px-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-6"><div class="flex items-center gap-3 px-3"><div class="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center font-page-heading text-card-heading italic font-medium">A</div><div class="flex flex-col"><span class="font-card-heading text-card-heading font-medium tracking-tight text-text-primary">Axiom</span><span class="font-label-sm text-label-sm text-text-secondary uppercase tracking-widest">Intelligence</span></div></div><nav class="flex flex-col gap-1" data-active-classes="bg-surface-secondary text-text-primary font-medium shadow-[0_1px_4px_rgba(0,0,0,0.03)]"><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors font-body text-body" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors font-body text-body" data-path="analyze" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span>Analyze</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors font-body text-body" data-path="compare" href="#"><span class="material-symbols-outlined text-[20px]">compare_arrows</span><span>Compare</span></a><a aria-current="page" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors bg-surface-secondary text-text-primary font-medium shadow-[0_1px_4px_rgba(0,0,0,0.03)]" data-path="history" href="#"><span class="material-symbols-outlined text-[20px]">schedule</span><span>History</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors font-body text-body" data-path="templates" href="#"><span class="material-symbols-outlined text-[20px]">folder_special</span><span>Templates</span></a><a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-hover hover:text-text-primary transition-colors font-body text-body" data-path="settings" href="#"><span class="material-symbols-outlined text-[20px]">settings</span><span>Settings</span></a></nav></div><div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-secondary/70 hover:bg-surface-secondary transition-colors cursor-pointer"><div class="flex items-center gap-2.5 min-w-0"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0"><span class="font-body-secondary text-body-secondary font-medium text-text-primary truncate">Kunal</span><span class="font-label-sm text-label-sm text-text-secondary truncate">Free plan</span></div></div><span class="material-symbols-outlined text-text-secondary text-[18px]">unfold_more</span></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/90 backdrop-blur-xl z-40 px-gutter shadow-[0_1px_8px_rgba(0,0,0,0.03)] flex items-center justify-between gap-4"><div class="relative flex-1 max-w-md"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span><input class="w-full bg-surface-container-low/60 hover:bg-surface-container-low focus:bg-surface pl-9 pr-14 py-1.5 rounded-lg text-text-primary placeholder:text-text-muted font-body-secondary text-body-secondary transition-all outline-none cursor-pointer" placeholder="Search your documents..." readonly="" type="text"/><span class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest/60 text-text-secondary font-metadata text-metadata">⌘K</span></div><div class="flex items-center gap-3"><button class="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors relative" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-1.5 h-1.5 bg-risk-high-text rounded-full"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 flex-1 px-gutter py-space-lg bg-background"><div class="flex flex-col w-full space-y-8">
+<!-- Top Breadcrumb & Page Headings -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-text-secondary">Archive &amp; Repository • 24 Analyzed Files</span>
+</div>
+<h1 class="font-page-heading text-page-heading text-text-primary tracking-tight">Document history</h1>
+<p class="font-body text-body text-text-secondary max-w-2xl">
+        View, filter, and audit all your analyzed contracts, revisions, and structural risk reports with direct provenance tracking.
+      </p>
+</div>
+<!-- Header Actions -->
+<div class="flex items-center gap-3 shrink-0">
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface text-text-primary font-body-secondary text-body-secondary hover:bg-surface-secondary shadow-sm transition-all duration-200" type="button">
+<span class="material-symbols-outlined text-[18px] text-text-secondary">download</span>
+<span>Export CSV</span>
+</button>
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary font-body-secondary text-body-secondary hover:bg-primary-hover shadow-md transition-all duration-200" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>Upload new</span>
+</button>
+</div>
+</div>
+<!-- Top Metrics Summary Row (4 Bento Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Total Reviewed</span>
+<div class="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-primary">
+<span class="material-symbols-outlined text-[18px]">inventory_2</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="font-page-heading text-[32px] leading-tight text-text-primary">24 contracts</div>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-risk-low-text">
+<span class="material-symbols-outlined text-[15px]">trending_up</span>
+<span>+3 this week</span>
+</div>
+</div>
+<!-- Ambient Sparkline Graphic -->
+<div class="mt-4 pt-2">
+<svg class="w-full h-7 overflow-visible stroke-primary/30" fill="none" viewbox="0 0 160 28">
+<path d="M0 24 L25 18 L55 22 L85 10 L115 15 L140 6 L160 9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<circle class="fill-primary" cx="160" cy="9" r="3"></circle>
+</svg>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">High Risk Detected</span>
+<div class="w-8 h-8 rounded-lg bg-risk-high-bg text-risk-high-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="font-page-heading text-[32px] leading-tight text-text-primary">7 clauses</div>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-risk-high-text">
+<span class="material-symbols-outlined text-[15px]">warning</span>
+<span>In 2 documents</span>
+</div>
+</div>
+<div class="mt-4 pt-2">
+<div class="w-full h-1.5 bg-surface-secondary rounded-full overflow-hidden">
+<div class="h-full bg-risk-high-text rounded-full" style="width: 29%;"></div>
+</div>
+<span class="block mt-1.5 font-metadata text-metadata text-text-muted">Requires partner signatory sign-off</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Medium &amp; Low</span>
+<div class="w-8 h-8 rounded-lg bg-risk-medium-bg text-risk-medium-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">balance</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="font-page-heading text-[32px] leading-tight text-text-primary">14 issues</div>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-risk-medium-text">
+<span class="material-symbols-outlined text-[15px]">info</span>
+<span>Across 5 agreements</span>
+</div>
+</div>
+<div class="mt-4 pt-2">
+<div class="w-full h-1.5 bg-surface-secondary rounded-full overflow-hidden">
+<div class="h-full bg-risk-medium-text rounded-full" style="width: 58%;"></div>
+</div>
+<span class="block mt-1.5 font-metadata text-metadata text-text-muted">Standard indemnification deviations</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface rounded-xl p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Clean Contracts</span>
+<div class="w-8 h-8 rounded-lg bg-risk-low-bg text-risk-low-text flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="font-page-heading text-[32px] leading-tight text-text-primary">17 approved</div>
+<div class="flex items-center gap-1.5 mt-1 font-metadata text-metadata text-risk-low-text">
+<span class="material-symbols-outlined text-[15px]">check_circle</span>
+<span>71% safety score</span>
+</div>
+</div>
+<div class="mt-4 pt-2">
+<div class="w-full h-1.5 bg-surface-secondary rounded-full overflow-hidden">
+<div class="h-full bg-risk-low-text rounded-full" style="width: 71%;"></div>
+</div>
+<span class="block mt-1.5 font-metadata text-metadata text-text-muted">Fully cleared for execution</span>
+</div>
+</div>
+</div>
+<!-- Search & Filter Controls Surface -->
+<div class="bg-surface rounded-xl p-3 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+<!-- Keyword Search -->
+<div class="relative w-full md:w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-[18px]">search</span>
+<input class="w-full bg-surface-secondary/70 focus:bg-surface text-text-primary placeholder:text-text-muted font-body-secondary text-body-secondary pl-9 pr-4 py-2 rounded-lg outline-none transition-all" id="docSearchInput" placeholder="Search documents by name or keyword..." type="text"/>
+</div>
+<!-- Filters Group -->
+<div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+<div class="relative">
+<select class="appearance-none bg-surface-secondary/70 hover:bg-surface-secondary text-text-primary font-body-secondary text-body-secondary py-2 pl-3.5 pr-8 rounded-lg cursor-pointer outline-none transition-colors">
+<option>All types</option>
+<option>Contract</option>
+<option>NDA</option>
+<option>Proposal</option>
+<option>Addendum</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary text-[16px] pointer-events-none">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-surface-secondary/70 hover:bg-surface-secondary text-text-primary font-body-secondary text-body-secondary py-2 pl-3.5 pr-8 rounded-lg cursor-pointer outline-none transition-colors">
+<option>All status</option>
+<option>Completed</option>
+<option>In Review</option>
+<option>Flagged</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary text-[16px] pointer-events-none">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-surface-secondary/70 hover:bg-surface-secondary text-text-primary font-body-secondary text-body-secondary py-2 pl-3.5 pr-8 rounded-lg cursor-pointer outline-none transition-colors">
+<option>Newest first</option>
+<option>Oldest first</option>
+<option>Risk severity</option>
+<option>Alphabetical</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-text-secondary text-[16px] pointer-events-none">expand_more</span>
+</div>
+<button class="w-9 h-9 rounded-lg bg-surface-secondary/70 hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+</div>
+</div>
+<!-- Document Ledger Table Container -->
+<div class="bg-surface rounded-xl shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-secondary/60">
+<th class="py-3.5 px-6 font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Name</th>
+<th class="py-3.5 px-4 font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Type</th>
+<th class="py-3.5 px-4 font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Date</th>
+<th class="py-3.5 px-4 font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Risks Identified</th>
+<th class="py-3.5 px-4 font-label-sm text-label-sm uppercase tracking-wider text-text-secondary">Status</th>
+<th class="py-3.5 px-6 font-label-sm text-label-sm uppercase tracking-wider text-text-secondary text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-secondary/50 font-body-secondary text-body-secondary">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-secondary/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-risk-high-bg text-risk-high-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-secondary text-body-secondary font-medium text-text-primary hover:underline cursor-pointer truncate">Freelance Agreement.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">2.4 MB • 8 pages</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-text-secondary">Contract</td>
+<td class="py-4 px-4 text-text-secondary whitespace-nowrap">Oct 21, 2026</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-risk-high-bg text-risk-high-text font-metadata text-metadata font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-high-text"></span>
+                3 High risks
+              </span>
+</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 font-metadata text-metadata text-risk-low-text font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                Completed
+              </span>
+</td>
+<td class="py-4 px-6 text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-hover text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">
+                  View analysis
+                </button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-secondary/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-risk-medium-bg text-risk-medium-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-secondary text-body-secondary font-medium text-text-primary hover:underline cursor-pointer truncate">NDA CompanyX.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">1.1 MB • 3 pages</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-text-secondary">NDA</td>
+<td class="py-4 px-4 text-text-secondary whitespace-nowrap">Oct 19, 2026</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-risk-medium-bg text-risk-medium-text font-metadata text-metadata font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-medium-text"></span>
+                1 Medium risk
+              </span>
+</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 font-metadata text-metadata text-risk-low-text font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                Completed
+              </span>
+</td>
+<td class="py-4 px-6 text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-hover text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">
+                  View analysis
+                </button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-secondary/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-info-bg text-info-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">description</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-secondary text-body-secondary font-medium text-text-primary hover:underline cursor-pointer truncate">Service Contract.docx</span>
+<span class="font-metadata text-metadata text-text-muted">480 KB • 6 pages</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-text-secondary">Contract</td>
+<td class="py-4 px-4 text-text-secondary whitespace-nowrap">Oct 18, 2026</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-risk-medium-bg text-risk-medium-text font-metadata text-metadata font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-medium-text"></span>
+                2 Medium risks
+              </span>
+</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 font-metadata text-metadata text-risk-low-text font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                Completed
+              </span>
+</td>
+<td class="py-4 px-6 text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-hover text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">
+                  View analysis
+                </button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-secondary/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-risk-low-bg text-risk-low-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-secondary text-body-secondary font-medium text-text-primary hover:underline cursor-pointer truncate">Partnership Agreement.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">3.8 MB • 14 pages</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-text-secondary">Contract</td>
+<td class="py-4 px-4 text-text-secondary whitespace-nowrap">Oct 16, 2026</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-risk-low-bg text-risk-low-text font-metadata text-metadata font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                1 Low risk
+              </span>
+</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 font-metadata text-metadata text-risk-low-text font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                Completed
+              </span>
+</td>
+<td class="py-4 px-6 text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-hover text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">
+                  View analysis
+                </button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-secondary/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-surface-secondary text-text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-secondary text-body-secondary font-medium text-text-primary hover:underline cursor-pointer truncate">Client Proposal.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">1.5 MB • 5 pages</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-text-secondary">Proposal</td>
+<td class="py-4 px-4 text-text-secondary whitespace-nowrap">Oct 14, 2026</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-secondary text-text-secondary font-metadata text-metadata font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-text-muted"></span>
+                0 Risks
+              </span>
+</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 font-metadata text-metadata text-risk-low-text font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                Completed
+              </span>
+</td>
+<td class="py-4 px-6 text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-hover text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">
+                  View analysis
+                </button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-secondary/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-risk-medium-bg text-risk-medium-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-secondary text-body-secondary font-medium text-text-primary hover:underline cursor-pointer truncate">Consulting Agreement.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">2.9 MB • 9 pages</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-text-secondary">Contract</td>
+<td class="py-4 px-4 text-text-secondary whitespace-nowrap">Oct 12, 2026</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-risk-medium-bg text-risk-medium-text font-metadata text-metadata font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-medium-text"></span>
+                2 Medium risks
+              </span>
+</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 font-metadata text-metadata text-risk-low-text font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                Completed
+              </span>
+</td>
+<td class="py-4 px-6 text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-hover text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">
+                  View analysis
+                </button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-surface-secondary/30 transition-colors group">
+<td class="py-4 px-6">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-risk-high-bg text-risk-high-text flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-secondary text-body-secondary font-medium text-text-primary hover:underline cursor-pointer truncate">Master Services Agreement.pdf</span>
+<span class="font-metadata text-metadata text-text-muted">4.2 MB • 22 pages</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-text-secondary">Contract</td>
+<td class="py-4 px-4 text-text-secondary whitespace-nowrap">Oct 08, 2026</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-risk-high-bg text-risk-high-text font-metadata text-metadata font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-high-text"></span>
+                4 High risks
+              </span>
+</td>
+<td class="py-4 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 font-metadata text-metadata text-risk-low-text font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-risk-low-text"></span>
+                Completed
+              </span>
+</td>
+<td class="py-4 px-6 text-right whitespace-nowrap">
+<div class="flex items-center justify-end gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-secondary hover:bg-surface-hover text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">
+                  View analysis
+                </button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-secondary text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-6 py-4 bg-surface flex flex-col sm:flex-row items-center justify-between gap-4">
+<span class="font-metadata text-metadata text-text-secondary">
+        Showing <strong class="text-text-primary font-medium">7</strong> of <strong class="text-text-primary font-medium">24</strong> documents
+      </span>
+<div class="flex items-center gap-1">
+<button class="px-3 py-1.5 rounded-lg text-text-secondary hover:bg-surface-secondary hover:text-text-primary font-body-secondary text-body-secondary flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+<span>Prev</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-primary-container text-on-primary font-body-secondary text-body-secondary font-medium shadow-sm" type="button">1</button>
+<button class="w-8 h-8 rounded-lg text-text-secondary hover:bg-surface-secondary hover:text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">2</button>
+<button class="w-8 h-8 rounded-lg text-text-secondary hover:bg-surface-secondary hover:text-text-primary font-body-secondary text-body-secondary transition-colors" type="button">3</button>
+<button class="px-3 py-1.5 rounded-lg text-text-secondary hover:bg-surface-secondary hover:text-text-primary font-body-secondary text-body-secondary flex items-center gap-1 transition-colors" type="button">
+<span>Next</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Compliance & Legal Trust Bar -->
+<div class="rounded-xl p-4 bg-surface-secondary/70 flex flex-col md:flex-row items-center justify-between gap-4 text-text-secondary">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-text-primary text-[20px]">lock</span>
+<span class="font-body-secondary text-body-secondary">
+        All documents are encrypted with AES-256 at rest and automatically audited against jurisdictional legal norms.
+      </span>
+</div>
+<div class="flex items-center gap-4 text-text-secondary font-metadata text-metadata whitespace-nowrap">
+<a class="hover:text-text-primary underline transition-colors" href="#">Retention Policy</a>
+<span>•</span>
+<a class="hover:text-text-primary underline transition-colors" href="#">Audit Logs</a>
+</div>
+</div>
+</div>
+<script>
+  // Simple in-page filter interaction for searching documents
+  const searchInput = document.getElementById('docSearchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+      });
+    });
+  }
+</script></main></div></body></html>
