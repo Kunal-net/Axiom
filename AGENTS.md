@@ -1,58 +1,95 @@
-# Axiom — Coding Agent Instructions
+# Axiom — Coding Agent Instructions & Guardrails
 
-## Before Making Changes
-1. Read `MEMORY.md`, `CONTEXT.md`, `ARCHITECTURE.md`, and `DESIGN.md` (if present).
-2. Read relevant README/setup docs and repository-specific agent instructions.
-3. Inspect the actual files and Git status before editing.
-4. Discover relevant downloaded/installed skills, read their instructions, and apply them. Check for `design-taste-frontend`, `gpt-taste`, and `motion`/motion-kit if those names are available in the environment.
-5. Confirm the current stack and preserve working architecture.
+> Strict operating instructions for AI coding agents working on the Axiom codebase.
+> Always inspect the repository and read this file before making modifications.
 
-## Product and Design Rules
-- The approved Stitch designs are the visual source of truth.
-- Implement all eight canonical Axiom screens and connect them with functional navigation.
-- Follow existing design tokens and `DESIGN.md`; do not replace the design with a generic SaaS template.
-- Verify the rendered application against Stitch when browser/screenshot tooling is available.
-- Do not claim visual verification unless screenshots were actually reviewed.
+---
 
-## Engineering Rules
-- Use existing conventions and package manager.
-- Prefer typed interfaces and schemas; avoid `any` where practical.
-- Reuse shared components without overengineering.
-- Every visible interactive control must work or clearly indicate why it is unavailable.
-- Implement loading, empty, success, and error states.
-- Keep mock data/services isolated and clearly labeled.
-- Do not invent API endpoints, credentials, schemas, or product capabilities.
-- Do not overwrite existing work or remove files without inspecting their purpose.
-- Keep secrets out of source code, client bundles, logs, and Git.
-- Never claim tests, integrations, or builds passed unless they were run.
+## 1. Operating Rules & Core Constraints
 
-## Environment Setup
-- Inspect existing setup before generating starter files.
-- Create/maintain `.env.example` with safe placeholders and documentation.
-- Ensure `.env`, `.venv/`, dependency directories, caches, and build outputs are appropriately ignored.
-- Use `.venv` only when Python backend/tooling requires it.
-- Keep package manifests and lockfiles consistent.
-- Document exact install, run, lint, test, and build commands in `README.md` or `docs/DEVELOPMENT.md`.
+1. **Complete One Bounded Task at a Time:** Do not start multiple speculative refactors simultaneously. Focus strictly on the assigned objective, verify it, and report completion before proceeding.
+2. **Preserve Existing Completed Work:** The frontend in `src/` is complete, verified, and approved. Never rebuild, redesign, or replace working components, styles, or routes.
+3. **Inspect Before Modifying:** Always inspect actual files, imports, package manifests, and `git status` before writing or editing code.
+4. **Git Safety Guardrails:**
+   - **NEVER** run `git commit`, `git push`, `git reset`, or `git checkout -f` unless explicitly requested by the user.
+   - Preserve existing Git history, branches, and working tree changes.
+   - Prefer minimal, reversible file modifications.
+5. **No Secret Leaks:** Never commit `.env` or write API keys, tokens, or credentials into source files, client bundles, documentation, or logs.
 
-## Documentation and Memory
-At the beginning of substantial tasks, check whether documentation matches the code.
-At the end of substantial tasks:
-- Update `MEMORY.md` with durable discoveries, actual status, and blockers.
-- Update `ARCHITECTURE.md` when structure/data flow changes.
-- Update `CONTEXT.md` when product/domain rules change.
-- Update `DESIGN.md` when approved design tokens or component rules change.
-- Update API/setup/testing docs when interfaces or commands change.
-- Add an ADR for significant architectural decisions, including context, alternatives, decision, and consequences.
-Do not turn memory into a transcript. Never store secrets.
+---
 
-## Verification
-Run the relevant available checks:
-- install/dependency validation where needed;
-- lint and type checking;
-- unit/integration tests;
-- production build;
-- browser walkthrough and responsive review where tools are available.
-Report exact checks run and their outcomes, including any blockers.
+## 2. Repository Layout & Conventions
 
-## Completion Report
-Summarize implemented work, routes, actual integrations versus mocks, files changed, checks run, and remaining limitations.
+```text
+axiom/
+├── src/                      # Completed React 19 + TypeScript frontend
+│   ├── pages/                # 8 canonical screens (Landing, Dashboard, Analyze, Results, Report, Compare, History, Settings)
+│   ├── components/           # Reusable UI primitives, layout chrome, and modal dialogs
+│   ├── services/             # Typed service layer (contractService.ts) connecting UI to mock/live data
+│   ├── config/               # Public environment configuration (env.ts)
+│   ├── types/                # Core TypeScript domain models (contract.ts)
+│   └── data/                 # Sample benchmark contracts and initial mock fixtures
+├── backend/                  # [Proposed] Backend application (FastAPI / Express) — Member 2 domain
+├── ai/                       # [Proposed] AI/ML analysis & prompt pipeline — Member 3 domain
+├── scripts/                  # Unified verification & maintenance scripts (verify.sh)
+├── docs/                     # Detailed technical architecture, API contracts, workflow, and testing docs
+├── .env.example              # Safe environment variable template with non-secret placeholders
+├── AGENTS.md                 # Agent instructions (this file)
+├── README.md                 # Project getting started and developer guide
+├── ARCHITECTURE.md           # System boundaries and data flow diagrams
+├── CONTEXT.md                # Product domain concepts, team ownership, and constraints
+├── DESIGN.md                 # Approved design system and Stitch fidelity specifications
+├── MEMORY.md                 # Durable project memory, decisions, and stable conventions
+└── TASKS.md                  # Prioritized group task tracker
+```
+
+---
+
+## 3. Verified Verification Commands
+
+Always run verification checks after editing code. Zero errors and zero warnings are required.
+
+```bash
+# Unified pipeline: runs lint, test, and production build in sequence
+npm run verify
+
+# Individual checks
+npm run lint         # Oxlint static analysis (0 warnings, 0 errors policy)
+npm test             # Vitest unit & regression suite (8 passing tests)
+npm run build        # TypeScript compiler (tsc -b) & Vite client bundle
+npm run dev          # Start local development server (http://localhost:5173/)
+```
+
+---
+
+## 4. Engineering Standards
+
+- **Strict Typing:** Use explicit interfaces and types from `src/types/contract.ts`. Avoid `any`.
+- **Component Hygiene:** Ensure every visible interactive control functions or clearly displays an unavailable message with a retry or disabled state.
+- **Service Isolation:** Keep mock data isolated behind `contractService.ts`. Never hardcode mock payloads directly inside page components.
+- **Render Purity:** Do not invoke impure constructors or non-deterministic functions (e.g. `new Date()`) directly inside component render bodies.
+- **Design Token Fidelity:** Strictly adhere to the tokens defined in `DESIGN.md` (warm ivory `#F7F4EE`, surface `#FFFDFA`, border `#E6E0D6`, near-black `#1C1B19`, Newsreader serif, Inter sans-serif). Never introduce generic SaaS purple/blue neon glows.
+
+---
+
+## 5. Documentation & Memory Maintenance
+
+At the start of substantial tasks, check whether documentation matches the current repository state.
+At the end of substantial tasks, update:
+- `MEMORY.md`: Durable discoveries, runtime facts, and resolved blockers (no transcripts, no secrets).
+- `ARCHITECTURE.md`: Any structural changes, service boundaries, or new integration points.
+- `TASKS.md`: Mark completed tasks with verified evidence; update next action items.
+- `CONTEXT.md`: When domain concepts, constraints, or team assignments evolve.
+- `docs/API.md`: When endpoints, schemas, or payload structures change.
+- `docs/decisions/`: Add an Architecture Decision Record (ADR) for major technical pivots.
+
+---
+
+## 6. Completion Report Format
+
+When concluding an assigned task, provide a clear, structured summary containing:
+1. **Summary of Work:** Concise overview of implemented changes.
+2. **Files Changed / Created:** Clickable links to all modified files.
+3. **Verification Outcomes:** Exact commands run (`npm run verify`, lint, tests, build) and output status.
+4. **Active Limitations:** Any mock modes or pending upstream services.
+5. **Recommended Next Steps:** Concrete next tasks for team members.

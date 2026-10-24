@@ -1,73 +1,44 @@
 # Axiom — Project Memory
 
-> Purpose: durable, concise project knowledge for future development sessions.
-> Update this file after substantial implementation work. Do not store secrets.
+> Purpose: Durable, concise project knowledge for future development sessions.
+> Update this file after substantial implementation work. Never store secrets.
 
-## Product
-Axiom is an AI-powered contract intelligence and analysis platform. Its intended experience includes a public landing page and authenticated workflows for contract uploads, analysis, risk findings, document comparison, reports, document history, and settings.
+---
 
-## Source of Truth
-- **Visual source of truth:** approved Google Stitch designs and `DESIGN.md`.
-- **Technical source of truth:** the actual repository, existing implementation, and verified configuration.
-- **Agent workflow:** `AGENTS.md`.
-- **Product/domain concepts:** `CONTEXT.md`.
-- **Technical structure and data flow:** `ARCHITECTURE.md`.
+## 1. Source of Truth Matrix
 
-Stitch reference supplied for the project:
-https://stitch.withgoogle.com/projects/17845469504253765522
+| Domain | Authoritative File | Description |
+|---|---|---|
+| **Visual Design** | [DESIGN.md](file:///Users/kunalsuryanshi/Documents/axiom/DESIGN.md) & [stitch-reference/](file:///Users/kunalsuryanshi/Documents/axiom/stitch-reference) | Warm ivory palette, Newsreader/Inter typography, 8 approved screens |
+| **System Architecture** | [ARCHITECTURE.md](file:///Users/kunalsuryanshi/Documents/axiom/ARCHITECTURE.md) | Boundaries, data flow, integration points |
+| **Product & Domain** | [CONTEXT.md](file:///Users/kunalsuryanshi/Documents/axiom/CONTEXT.md) | Product scope, 3-member team ownership, legal guardrails |
+| **Agent Guardrails** | [AGENTS.md](file:///Users/kunalsuryanshi/Documents/axiom/AGENTS.md) | Bounded task rule, Git safety, verification protocol |
+| **Task Tracker** | [TASKS.md](file:///Users/kunalsuryanshi/Documents/axiom/TASKS.md) | 7-phase group roadmap and task board |
+| **API Contracts** | [docs/API.md](file:///Users/kunalsuryanshi/Documents/axiom/docs/API.md) | Request/response schemas for Frontend, Backend, and AI |
+| **Developer Guide** | [README.md](file:///Users/kunalsuryanshi/Documents/axiom/README.md) & [docs/DEVELOPMENT.md](file:///Users/kunalsuryanshi/Documents/axiom/docs/DEVELOPMENT.md) | Setup, verified commands, and local workflow |
 
-## Canonical Screens
-1. Public landing page
-2. Dashboard
-3. Analyze contract
-4. Analysis workspace/results
-5. Compare documents
-6. Analysis report
-7. Document history
-8. Settings and profile
+---
 
-## Confirmed Design Direction
-The approved direction is a restrained, editorial contract-intelligence product rather than a generic SaaS template. The supplied design prompt specifies these starting tokens, subject to verification against the existing `DESIGN.md` and Stitch designs:
-- Warm ivory: `#F7F4EE`
-- Primary surface: `#FFFDFA`
-- Borders/dividers: `#E6E0D6`
-- Near-black primary buttons: `#1C1B19`
-- Editorial headings: DM Serif Display or Newsreader, as supported by the design
-- Interface text: Inter
+## 2. Technical Stack & Key Decisions
 
-Do not treat these tokens as a substitute for inspecting the actual designs.
+- **Frontend:** React 19.3.1, TypeScript 6.0.3, Vite 8.3.5, Tailwind CSS v4.3.3 (`@tailwindcss/vite`).
+- **Routing:** Hash-based deep link routing (`#/<route>?doc=<id>`) implemented in `src/App.tsx`. This ensures seamless bookmarking and page navigation on local preview servers without requiring backend URL rewrite configuration.
+- **Service Layer Pattern:** All UI screens interact exclusively with `contractService` (`src/services/contractService.ts`). When backend endpoints are live, switching `VITE_USE_MOCK_DATA=false` connects directly to the REST API with zero UI component changes.
+- **Verification Gate:** `npm run verify` (`./scripts/verify.sh`) executes Oxlint (0 warnings policy), Vitest (8 passing tests), and TypeScript build (`tsc -b`).
 
-## Current Implementation Status
-- **Stack Verified:** React 19.3.1, Vite 8.3.5, TypeScript 6.0.3, Tailwind CSS v4.3.3 (@tailwindcss/vite), Motion 14.5.0, Lucide React 1.61.0.
-- **Verification Suite:**
-  - `npm run lint` (`oxlint`): 0 warnings, 0 errors.
-  - `npm test` (`vitest`): 8/8 passing tests covering environment validation and contract service.
-  - `npm run build` (`tsc -b && vite build`): succeeds with clean production bundle.
-- **Downloaded Skills Discovered & Applied:**
-  - `design-taste-frontend` & `stitch-design-taste`: warm ivory palette (`#F7F4EE`, `#FFFDFA`, `#E6E0D6`), double-bezel cards, whisper shadows, restrained editorial typography (Newsreader + Inter).
-  - `gpt-taste`: strict wide container heroes, zero-AI-purple aesthetic, explicit evidence-backed contract excerpts, zero emoji pollution.
-  - `motion`: spring-based tactile feedback, smooth route and modal transitions, respect for `prefers-reduced-motion`.
-- **Screen Inventory:**
-  1. `#/landing` — Public landing page with live interactive clause demo and zero-training guarantees.
-  2. `#/dashboard` — Contract intelligence workspace with recent documents, telemetry metrics, and template launcher.
-  3. `#/analyze` — Drag-and-drop upload zone with realistic 4-stage enclave processing simulation.
-  4. `#/results` — 3-column analysis workspace: severity filters, source clause document viewer, and plain-English breakdown with suggested redlines.
-  5. `#/report` — Formal printable/exportable contract audit report with executive scorecard and legal disclaimer.
-  6. `#/compare` — Side-by-side legal diffing tool distinguishing insertions, deletions, and potential contractual conflicts.
-  7. `#/history` — Searchable document repository and audit log with status and severity filters.
-  8. `#/settings` — Preferences for liability calibration, analysis tone, data retention policies, and security alerts.
-- **Backend & Mock State:** Operating in self-contained mock service mode (`VITE_USE_MOCK_DATA=true`) via `src/services/contractService.ts`. Live backend endpoints remain unconfigured pending backend service deployment.
+---
 
-## Non-Negotiable Rules
-- Inspect before modifying; preserve existing working architecture and user work.
-- Use downloaded/installed relevant skills: discover them, read their instructions, and apply them. In particular, check whether `design-taste-frontend`, `gpt-taste`, and `motion`/motion-kit are actually available.
-- Do not claim a skill, test, API integration, or visual comparison was used/performed unless it was.
-- Never present mock contract findings as real AI-generated results.
-- Do not invent API endpoints, credentials, database schemas, or production configuration.
-- Keep secrets out of Git, browser bundles, logs, and documentation.
-- Update this file and the relevant docs after significant changes.
-- Distinguish implemented, tested, integrated, and production-ready states.
+## 3. Known Pitfalls & Implementation Conventions
 
-## Update Log
-- **2026-10-24:** Complete verification of all 8 canonical screens. Resolved all 70 linter warnings across component imports, react render purity, and routing hooks to reach 0 errors and 0 warnings on `oxlint`. Successfully validated full test suite (8 passing tests) and verified dev server at `http://localhost:5173/`. Discovered and documented active skills in `~/.agents/skills/`.
+1. **Environment Variable Visibility:** In Vite, only variables prefixed with `VITE_` are exposed to the browser client. Never place AI API keys (`AI_API_KEY`), database passwords, or JWT secrets in `VITE_` variables. Server secrets belong strictly in server-side configuration.
+2. **React Render Purity:** Linters flag calling impure constructors (like `new Date()`) directly inside component render bodies. Use module-level constants or compute dates in `useEffect` / handlers.
+3. **Tailwind v4 Setup:** Tailwind v4 uses CSS `@theme` declarations inside `src/index.css` rather than a `tailwind.config.js` file.
+4. **Oxlint Unused Variables:** Unused function parameters required by an interface must be prefixed with an underscore (e.g. `_template: ContractTemplate`).
+5. **No Redundant Directories:** The starter directory `axiom_project_essentials/` was removed to eliminate confusion and establish single-source-of-truth documentation at the root.
 
+---
+
+## 4. Update Log
+
+- **2026-10-24 (Organization & Foundation):** Completed comprehensive project organization for 3-member team. Removed redundant `axiom_project_essentials/` folder. Created `TASKS.md`, `scripts/verify.sh`, and `docs/WORKFLOW.md`. Updated `README.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `AGENTS.md`, and `docs/API.md`. Cleaned all lingering Oxlint warnings across pages to achieve 0 warnings and 0 errors on `npm run verify`.
+- **2026-10-22 (Bootstrap & Skills):** Discovered and loaded design taste skills (`design-taste-frontend`, `gpt-taste`, `stitch-design-taste`). Verified all 8 canonical screens.

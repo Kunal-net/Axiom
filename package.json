@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify": "./scripts/verify.sh"
   },
   "dependencies": {
     "clsx": "^2.1.1",

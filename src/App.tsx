@@ -53,7 +53,7 @@ export function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSelectTemplate = (template: ContractTemplate) => {
+  const handleSelectTemplate = (_template: ContractTemplate) => {
     setIsTemplatesModalOpen(false);
     navigate('analyze');
   };
@@ -75,9 +75,9 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#F7F4EE] flex font-sans selection:bg-[#1C1B19] selection:text-white">
       {/* Sidebar Navigation */}
-      <Sidebar 
-        currentRoute={currentRoute} 
-        onNavigate={navigate} 
+      <Sidebar
+        currentRoute={currentRoute}
+        onNavigate={navigate}
         onOpenTemplates={() => setIsTemplatesModalOpen(true)}
         userProfile={userProfile}
       />
@@ -86,8 +86,8 @@ export function App() {
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Render AppHeader for pages that use standard header */}
         {currentRoute !== 'results' && currentRoute !== 'report' && (
-          <AppHeader 
-            onNavigate={navigate} 
+          <AppHeader
+            onNavigate={navigate}
             onSearch={(q) => {
               if (q && currentRoute !== 'history') navigate('history');
             }}

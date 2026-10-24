@@ -1,87 +1,116 @@
-# Axiom — Architecture
+# Axiom — Technical Architecture
 
-## Purpose
-Document the architecture that actually exists. This file begins with the intended boundaries and must be updated after repository inspection; do not treat proposed structure as proof of implementation.
+> Authoritative architectural specification for the Axiom Contract Intelligence Platform.
+> Clearly distinguishes existing verified implementation from proposed future modules.
 
-## Architectural Principles
-- Preserve the current stack and working infrastructure unless there is a clear reason to change it.
-- Keep presentation, domain types, and API access separated.
-- Use shared layouts and reusable UI primitives.
-- Keep backend-dependent behavior behind typed service interfaces.
-- Separate mock/development data from real production integrations.
-- Validate external data and handle loading, empty, success, and failure states.
-- Keep private credentials and server-only configuration out of browser code.
+---
 
-## Intended Frontend Boundaries
-Adapt these boundaries to the existing project; do not force a rewrite to match them.
+## 1. System Overview & Macro Architecture
 
-- **Application/bootstrap:** entry point, providers, route setup, global error handling.
-- **Layouts:** public layout and authenticated application shell.
-- **Pages:** the eight canonical Axiom screens.
-- **Shared UI:** buttons, inputs, badges, cards, dialogs, loading states, and empty states.
-- **Contract domain components:** upload, document list, risk summary, findings, clause viewer, comparison.
-- **Services:** centralized API client and domain-specific contract/analysis calls.
-- **Types/schemas:** contract, document, analysis, finding, and report models.
-- **Styles:** design tokens, global styles, responsive rules.
+Axiom is structured as a decoupled contract intelligence application designed for collaborative multi-member development:
 
-## Intended Request/Data Flow
 ```mermaid
 flowchart TD
-    U[User] --> UI[React UI / Pages]
-    UI --> C[Domain Components]
-    C --> S[Typed Service Layer]
-    S --> API[Existing Backend API]
-    API --> S
-    S --> C
-    C --> UI
+    subgraph Client ["Frontend Client (React 19 + Vite) — Completed (Member 1)"]
+        UI[8 Canonical Pages] --> Hooks[Page State & Hooks]
+        Hooks --> CS[contractService.ts]
+        CS -->|VITE_USE_MOCK_DATA=true| MockStore[(In-Memory Mock Store)]
+    end
+
+    subgraph Backend ["Backend Service — Proposed (Member 2)"]
+        API[FastAPI / Express Gateway] --> Auth[Auth & Session Guard]
+        API --> DB[(PostgreSQL / SQLite)]
+        API --> DocStore[(Document Storage)]
+        API --> AIBridge[AI Service Client]
+    end
+
+    subgraph Intelligence ["AI / ML Engine — Proposed (Member 3)"]
+        AIBridge --> Extractor[PDF / DOCX Text & Layout Extractor]
+        Extractor --> Segmenter[Clause Segmenter & Categorizer]
+        Segmenter --> LLM[LLM Risk & Counter-Proposal Pipeline]
+        LLM --> Validator[Pydantic / Structured JSON Output Validator]
+    end
+
+    CS -.->|VITE_USE_MOCK_DATA=false| API
 ```
 
-This is a conceptual diagram. Modify it if the actual repository uses a different architecture.
+---
 
-## Backend Integration Rules
-1. Inspect API documentation, backend routes, and schemas before making requests.
-2. Use actual endpoints and response shapes; do not guess endpoint paths.
-3. Centralize base URL and request/error handling.
-4. Document authentication and credential handling based on the actual implementation.
-5. Represent long-running analysis using the backend's real job/status model.
-6. If the backend is missing or unavailable, isolate mock services behind the same interface and label mock mode clearly.
+## 2. Existing Frontend Architecture (Verified & Completed)
 
-## Environment and Configuration
-- Frontend public environment variables may be exposed to the browser. In Vite, `VITE_*` values are public; never place secrets there.
-- Backend secrets belong only in server-side environment configuration.
-- Commit `.env.example`, not real `.env` files.
-- Use `.venv` only if Python backend/tooling exists.
-- Keep lockfiles and dependency definitions consistent with the selected package manager.
+The frontend is a single-page application built on React 19 and Vite 8, utilizing hash-based routing with deep-link query parameter support (`#/<route>?doc=<id>`).
 
-## Security and Reliability
-- Validate file type and size on both client and server when uploads exist.
-- Do not trust client-side validation as a security boundary.
-- Avoid logging contract contents, credentials, or other sensitive data unnecessarily.
-- Handle network failures, expired sessions, invalid identifiers, and unavailable services.
-- Do not claim authentication, persistence, or access controls work unless verified.
+### Directory Structure & Responsibilities
+- **`src/pages/`**: The eight canonical user experiences:
+  1. `LandingPage.tsx`: Public marketing experience, interactive live clause preview, trust badges, and FAQ accordion.
+  2. `DashboardPage.tsx`: Contract intelligence workspace, activity telemetry, primary action cards, and recent documents.
+  3. `AnalyzePage.tsx`: Contract upload dropzone with 4-stage enclave analysis progress simulation.
+  4. `AnalysisResultsPage.tsx`: 3-column workspace with risk filters, highlighted document viewer, and plain-English clause breakdown.
+  5. `ReportPage.tsx`: Printable executive summary audit sheet with PDF export.
+  6. `ComparePage.tsx`: Side-by-side legal diffing tool distinguishing insertions, deletions, and contractual conflicts.
+  7. `HistoryPage.tsx`: Searchable contract audit repository with severity counters and review filters.
+  8. `SettingsPage.tsx`: Preferences for liability calibration, analysis tone, and data retention policies.
+- **`src/components/layout/`**: Application shell (`AppHeader.tsx`, `Sidebar.tsx`, `Navbar.tsx`, `Footer.tsx`).
+- **`src/components/ui/`**: Hardware-inspired tactile design primitives (`DoubleBezel.tsx`, `Button.tsx`, `RiskBadge.tsx`).
+- **`src/components/contracts/`**: Contract domain modals (`TemplatesModal.tsx`).
+- **`src/services/`**: Centralized service abstraction (`contractService.ts` and unit tests `contractService.test.ts`).
+- **`src/types/`**: Strict TypeScript interfaces (`contract.ts`).
+- **`src/config/`**: Public runtime configuration (`env.ts` and test suite `env.test.ts`).
+- **`src/data/`**: Benchmark sample contracts, initial fixtures, and counter-proposals (`sampleContracts.ts`).
 
-## Repository-Specific Facts (Verified)
-- **Frontend Stack:** React 19.3.1, TypeScript 6.0.3, Vite 8.3.5, npm, Tailwind CSS v4.3.3 (@tailwindcss/vite), Motion 14.5.0, Lucide React 1.61.0.
-- **Backend Status:** No live backend server is running in the repository. The application operates in high-fidelity mock mode (`VITE_USE_MOCK_DATA=true`) via `src/services/contractService.ts`.
-- **Application Entry Points:**
-  - `index.html` → `src/main.tsx` → `src/App.tsx`.
-- **Route Map (Hash-based routing with deep-link support):**
-  - `#/landing` — Public landing page (features, live demo, FAQ, trust guarantees).
-  - `#/dashboard` — Contract intelligence workspace (telemetry, quick actions, recent documents).
-  - `#/analyze` — Document upload & staged enclave analysis simulation.
-  - `#/results?doc=<id>` — 3-column analysis workspace (clause list, document viewer, clause detail & redlines).
-  - `#/report?doc=<id>` — Printable and downloadable executive analysis report.
-  - `#/compare` — Side-by-side legal diffing and counter-proposal review.
-  - `#/history` — Searchable contract audit repository.
-  - `#/settings` — Preferences, liability threshold calibration, and retention settings.
-- **API Base URL Configuration:** `VITE_API_BASE_URL` (default: `http://localhost:8000`), managed centrally by `src/config/env.ts`.
-- **Authentication / Session Strategy:** Frontend user profile state initialized in `src/data/sampleContracts.ts` and managed via `ContractService`.
-- **Data Persistence:** In-memory reactive state in `ContractService` supporting runtime document additions and clause review status toggling.
-- **Verification Commands:**
-  - Lint: `npm run lint` (`oxlint` — 0 errors, 0 warnings)
-  - Tests: `npm test` (`vitest run` — 8 passing tests)
-  - Build: `npm run build` (`tsc -b && vite build`)
-  - Dev Server: `npm run dev` (`http://localhost:5173/`)
-- **Key Architectural Decisions:**
-  - ADR 0001: Established centralized documentation and memory tracking.
-  - Isolated Service Layer: All domain actions route through `contractService` so switching from mock mode to live REST/FastAPI endpoints requires zero UI component refactoring.
+### Data Flow within the Frontend
+1. The user triggers an action (e.g. upload document or select clause).
+2. The UI component invokes a method on the singleton `contractService`.
+3. If `VITE_USE_MOCK_DATA=true` (current state), `contractService` simulates network latency and returns typed sample fixtures from `src/data/sampleContracts.ts`.
+4. If `VITE_USE_MOCK_DATA=false`, `contractService` issues authenticated HTTP requests to `VITE_API_BASE_URL`.
+5. The UI component renders deterministic states: `loading`, `empty`, `error`, or `success`.
+
+---
+
+## 3. Proposed Backend Architecture (Member 2 Domain)
+
+*Status: Architecture Proposed — Implementation Pending.*
+
+The proposed backend will reside in a dedicated `backend/` directory:
+- **Framework Recommendation:** FastAPI (Python 3.11+) or Express (Node.js / TypeScript). FastAPI is recommended for direct compatibility with Python-based AI/ML extraction libraries.
+- **Persistence:** Relational database (PostgreSQL recommended; SQLite for local development).
+- **Core Endpoints:**
+  - `POST /api/v1/documents/upload` — Multipart file upload (PDF/DOCX, <= 25 MB).
+  - `POST /api/v1/documents/{id}/analyze` — Initiate clause extraction and risk analysis.
+  - `GET /api/v1/documents/{id}` — Fetch document metadata, parsed clauses, and severity counts.
+  - `GET /api/v1/documents` — List user documents with search, sorting, and pagination.
+  - `POST /api/v1/documents/compare` — Compare original and revised drafts.
+  - `GET /api/v1/user/profile` & `PUT /api/v1/user/profile` — User settings and liability calibration.
+- **Security:** JWT bearer authentication, rate limiting, and CORS restrictions (`CORS_ORIGINS`).
+
+---
+
+## 4. Proposed AI / ML Pipeline Architecture (Member 3 Domain)
+
+*Status: Architecture Proposed — Implementation Pending.*
+
+The proposed intelligence module will reside in a dedicated `ai/` directory:
+- **Document Ingestion:** Extract raw text, section numbers, and page anchors using `PyMuPDF` / `pdfplumber` (for PDF) and `python-docx` (for DOCX).
+- **Clause Segmentation:** Chunk document into distinct legal clauses preserving section headers (e.g., `Section 9.1 • Indemnification`).
+- **Analysis & Risk Scoring:**
+  - Classify clauses into risk levels: `high`, `medium`, `low`, `info`.
+  - Benchmark against independent professional standards (detecting uncapped liability, pre-existing IP transfer, unilateral non-competes).
+  - Generate plain-English explanations highlighting commercial risk.
+  - Synthesize balanced redline counter-proposals (e.g., capping contractor liability at fees paid).
+- **Structured Output Guarantee:** Enforce JSON schema validation via Pydantic or Instructor to prevent hallucinated structures.
+- **Diff Engine:** Compare source and revised contract text, distinguishing textual formatting from true contractual conflicts.
+
+---
+
+## 5. Architectural Decision Records (ADRs)
+
+- [ADR 0001: Establish Project Knowledge Files](file:///Users/kunalsuryanshi/Documents/axiom/docs/decisions/0001-project-documentation.md) — Established `MEMORY.md`, `CONTEXT.md`, `ARCHITECTURE.md`, `DESIGN.md`, and `AGENTS.md` as foundational sources of truth.
+- [ADR 0002: Three-Member Decoupled Architecture](file:///Users/kunalsuryanshi/Documents/axiom/docs/decisions/0002-three-member-architecture.md) — Decoupled Frontend (Member 1), Backend API (Member 2), and AI Engine (Member 3) behind typed interfaces.
+
+---
+
+## 6. Open Architectural Questions
+
+1. **Analysis Execution Model:** Should long-running contract analysis be handled via polling (`POST /analyze` returns `jobId` -> `GET /jobs/{id}`) or Server-Sent Events (SSE) streaming?
+2. **File Storage Policy:** Should uploaded contracts be stored on local filesystem storage in development, or use S3-compatible object storage?
+3. **AI LLM Provider:** Gemini 1.5 Pro / Flash vs Claude 3.5 Sonnet vs OpenAI GPT-4o for legal reasoning and structured extraction.

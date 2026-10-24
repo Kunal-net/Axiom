@@ -1,25 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  UploadCloud, 
-  FileText, 
-  Check, 
-  AlertCircle, 
-  Lock, 
-  ArrowRight, 
-  X,
-  PlusCircle, 
-  Cloud,
+import React, { useState, useRef } from 'react';
+import {
+  UploadCloud,
+  FileText,
   CheckCircle2,
-  Shield,
-  Gavel,
-  ShieldCheck,
-  GitCompare,
-  FileSearch,
-  Brain,
-  FileCheck
+  AlertCircle,
+  Loader2,
+  ShieldCheck
 } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { DoubleBezel } from '../components/ui/DoubleBezel';
 import { contractService } from '../services/contractService';
-import { ContractDocument } from '../types/contract';
 
 interface AnalyzePageProps {
   onNavigate: (route: string, docId?: string) => void;
@@ -27,15 +17,10 @@ interface AnalyzePageProps {
 
 export const AnalyzePage: React.FC<AnalyzePageProps> = ({ onNavigate }) => {
   const [dragActive, setDragActive] = useState(false);
-  const [stagedFile, setStagedFile] = useState<{ name: string; size: string; rawSize: number } | null>({
-    name: 'Freelance_Agreement.pdf',
-    size: '2.4 MB',
-    rawSize: 2.4 * 1024 * 1024
-  });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeStageIndex, setActiveStageIndex] = useState(0); // 0: upload, 1: processing, 2: analyzing, 3: report
-  const [progressPercent, setProgressPercent] = useState(42);
-  const [statusText, setStatusText] = useState('Parsing paragraph structure & liability limitations');
+  const [currentStage, setCurrentStage] = useState('');
+  const [progressPercent, setProgressPercent] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,448 +35,259 @@ export const AnalyzePage: React.FC<AnalyzePageProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelected(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileSelected(e.target.files[0]);
-    }
-  };
-
-  const handleFileSelected = (file: File) => {
+  const validateAndSetFile = (file: File) => {
     setErrorMessage(null);
     const validExtensions = ['.pdf', '.docx', '.doc'];
     const hasValidExt = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
 
     if (!hasValidExt) {
-      setErrorMessage('Invalid format. Axiom accepts PDF or DOCX documents.');
+      setErrorMessage('Invalid file format. Please upload a PDF or Word document (.docx).');
       return;
     }
 
-    if (file.size > 20 * 1024 * 1024) {
-      setErrorMessage('File size exceeds the 20MB limit.');
+    if (file.size > 25 * 1024 * 1024) {
+      setErrorMessage('File size exceeds the 25 MB limit.');
       return;
     }
 
-    const formattedSize = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-    setStagedFile({
-      name: file.name,
-      size: formattedSize,
-      rawSize: file.size
-    });
+    setSelectedFile(file);
   };
 
-  const triggerAnalysis = async () => {
-    if (!stagedFile) return;
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      validateAndSetFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      validateAndSetFile(e.target.files[0]);
+    }
+  };
+
+  const startAnalysis = async (fileToAnalyze: { name: string; size: number }) => {
     setIsAnalyzing(true);
-    setActiveStageIndex(0);
-    setProgressPercent(15);
-    setStatusText('Uploading document to secure analysis enclave...');
-
+    setErrorMessage(null);
     try {
-      // Stage 1 -> Stage 2
-      await new Promise(r => setTimeout(r, 600));
-      setActiveStageIndex(1);
-      setProgressPercent(45);
-      setStatusText('Parsing paragraph structure & liability limitations...');
-
-      // Stage 2 -> Stage 3
-      await new Promise(r => setTimeout(r, 800));
-      setActiveStageIndex(2);
-      setProgressPercent(78);
-      setStatusText('Auditing indemnities, unilateral termination & non-competes...');
-
-      // Stage 3 -> Stage 4
-      await new Promise(r => setTimeout(r, 700));
-      setActiveStageIndex(3);
-      setProgressPercent(100);
-      setStatusText('Synthesizing structured risk report and plain-English redlines...');
-
-      const doc = await contractService.analyzeDocument({
-        name: stagedFile.name,
-        size: stagedFile.rawSize
+      const doc = await contractService.analyzeDocument(fileToAnalyze, (stage, percent) => {
+        setCurrentStage(stage);
+        setProgressPercent(percent);
       });
-
-      await new Promise(r => setTimeout(r, 500));
-      onNavigate('results', doc.id);
+      // Transition to results screen
+      setTimeout(() => {
+        onNavigate('results', doc.id);
+      }, 400);
     } catch {
       setIsAnalyzing(false);
-      setErrorMessage('Analysis service encountered an unexpected error. Please try again.');
+      setErrorMessage('Analysis was interrupted. Please try again.');
     }
+  };
+
+  const handleSampleSelect = (sampleName: string, sizeMB: number) => {
+    const fakeFile = new File(['sample contract content'], sampleName, { type: 'application/pdf' });
+    setSelectedFile(fakeFile);
+    startAnalysis({ name: sampleName, size: sizeMB * 1024 * 1024 });
   };
 
   return (
-    <div className="w-full px-6 sm:px-10 py-8 max-w-7xl mx-auto space-y-8 pb-16">
-      {/* 1. Header Context */}
-      <div className="flex flex-col gap-2.5 pb-2">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F0ECE4] text-[#716B63] text-[11px] uppercase tracking-widest font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#286344]"></span>
-            AXIOM INTELLIGENCE ENGINE • v2.4 Neural Parser
-          </span>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="font-serif text-3xl sm:text-4xl text-[#1D1B18] tracking-tight font-normal">
-              Analyze a contract
-            </h1>
-            <p className="text-sm text-[#716B63] mt-1">
-              Upload your document and let Axiom scan it for risks, unfair clauses and key insights.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-[#716B63] text-xs bg-[#FFFDFA] px-3.5 py-2 rounded-lg shadow-sm border border-[#E6E0D6]">
-            <Lock className="w-3.5 h-3.5 text-[#286344]" />
-            <span>SOC-2 Type II Verified Environment</span>
-          </div>
-        </div>
+    <div className="p-6 sm:p-10 max-w-5xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="pb-4 border-b border-[#E6E0D6]">
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#979087]">New Analysis Run</span>
+        <h1 className="font-serif text-3xl sm:text-4xl text-[#1D1B18] mt-1 font-normal tracking-tight">
+          Analyze Contract
+        </h1>
+        <p className="text-sm text-[#716B63] mt-1 max-w-2xl">
+          Upload any client contract to uncover indemnities, intellectual property traps, and non-standard payment obligations in seconds.
+        </p>
       </div>
 
-      {errorMessage && (
-        <div className="p-3.5 bg-[#FCE4DF] border border-[#F7C6BE] rounded-xl flex items-center gap-3 text-xs text-[#A83224]">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
+      {/* Main Upload Double-Bezel Card */}
+      <DoubleBezel padding="md" className="max-w-4xl mx-auto">
+        <div className="p-8 sm:p-12 space-y-8">
+          {/* If actively processing */}
+          {isAnalyzing ? (
+            <div className="py-12 px-4 max-w-xl mx-auto text-center space-y-6">
+              <div className="w-16 h-16 rounded-2xl bg-[#1C1B19] text-white flex items-center justify-center mx-auto shadow-md">
+                <Loader2 className="w-8 h-8 animate-spin" />
+              </div>
 
-      {/* 2. Main Workspace Grid (Bento Split) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Upload & Staged File (7 cols) */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
-          {/* Interactive Dropzone */}
-          <div
-            onDragEnter={handleDrag}
-            onDragOver={handleDrag}
-            onDragLeave={handleDrag}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`group relative bg-[#FFFDFA] hover:bg-[#F0ECE4]/40 transition-all duration-300 rounded-xl p-8 sm:p-10 shadow-sm border border-[#E6E0D6] flex flex-col items-center justify-center text-center cursor-pointer overflow-hidden ${
-              dragActive ? 'ring-2 ring-[#1C1B19] bg-[#F0ECE4]/60' : ''
-            }`}
-            style={{
-              backgroundImage: 'radial-gradient(#cbc6bd 0.75px, transparent 0.75px)',
-              backgroundSize: '16px 16px'
-            }}
-          >
-            <div className="w-14 h-14 rounded-full bg-[#F0ECE4] flex items-center justify-center text-[#1D1B18] mb-4 shadow-sm group-hover:scale-105 transition-transform">
-              <UploadCloud className="w-7 h-7 text-[#1D1B18]" />
+              <div>
+                <h3 className="font-serif text-2xl text-[#1D1B18] font-normal">Analyzing Agreement</h3>
+                <p className="text-xs text-[#716B63] mt-1">{selectedFile?.name}</p>
+              </div>
+
+              {/* Progress Bar & Stage Status */}
+              <div className="space-y-3">
+                <div className="w-full bg-[#EAE5DC] h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-[#1C1B19] h-full transition-all duration-300 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs text-[#716B63]">
+                  <span className="font-medium text-[#1D1B18]">{currentStage}</span>
+                  <span className="font-mono">{progressPercent}%</span>
+                </div>
+              </div>
+
+              {/* Real checkpoints list */}
+              <div className="bg-[#F7F4EE] rounded-xl p-4 border border-[#E6E0D6] text-left text-xs space-y-2.5">
+                <div className={`flex items-center gap-2 ${progressPercent >= 25 ? 'text-[#286344] font-medium' : 'text-[#979087]'}`}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Enclave security handshake established</span>
+                </div>
+                <div className={`flex items-center gap-2 ${progressPercent >= 55 ? 'text-[#286344] font-medium' : 'text-[#979087]'}`}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Document parsed & clauses indexed by section</span>
+                </div>
+                <div className={`flex items-center gap-2 ${progressPercent >= 85 ? 'text-[#286344] font-medium' : 'text-[#979087]'}`}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Liability caps, IP rights & payment terms benchmarked</span>
+                </div>
+                <div className={`flex items-center gap-2 ${progressPercent >= 100 ? 'text-[#286344] font-medium' : 'text-[#979087]'}`}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Plain-English counter-proposals synthesized</span>
+                </div>
+              </div>
             </div>
-
-            <p className="text-base text-[#1D1B18] font-medium mb-1">
-              Drag and drop your file here
-            </p>
-            <p className="text-xs text-[#716B63] mb-6">
-              Supports PDF and DOCX (max 20MB)
-            </p>
-
-            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.docx,.doc"
-                className="hidden"
-                onChange={handleFileInputChange}
-              />
-              <button
-                type="button"
+          ) : (
+            <>
+              {/* Dropzone Area */}
+              <div
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
-                className="px-5 py-2.5 rounded-lg bg-[#1C1B19] text-white hover:bg-[#34312C] transition-colors text-xs font-medium shadow-sm flex items-center gap-2 cursor-pointer"
+                className={`border-2 border-dashed rounded-2xl p-10 sm:p-14 text-center cursor-pointer transition-all select-none ${dragActive
+                    ? 'border-[#1C1B19] bg-[#F0ECE4]/70 scale-[0.99]'
+                    : 'border-[#E6E0D6] bg-[#F7F4EE]/60 hover:bg-[#F0ECE4]/40 hover:border-[#716B63]'
+                  }`}
               >
-                <PlusCircle className="w-4 h-4" />
-                <span>Choose file</span>
-              </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,.doc"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
 
-              <button
-                type="button"
-                onClick={() => {
-                  setStagedFile({
-                    name: 'Cloud_Import_Master_Agreement.pdf',
-                    size: '3.1 MB',
-                    rawSize: 3.1 * 1024 * 1024
-                  });
-                }}
-                className="px-4 py-2.5 rounded-lg bg-[#F0ECE4] text-[#1D1B18] hover:bg-[#EAE5DC] transition-colors text-xs font-medium flex items-center gap-2"
-              >
-                <Cloud className="w-4 h-4 text-[#716B63]" />
-                <span>Import from Cloud</span>
-              </button>
-            </div>
-
-            <div className="mt-6 flex items-center gap-4 text-[#979087] text-xs font-medium">
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#286344]" /> 256-bit AES
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Check className="w-3.5 h-3.5 text-[#716B63]" /> Auto-redacted PII
-              </span>
-            </div>
-          </div>
-
-          {/* Staged Document Card */}
-          {stagedFile && (
-            <div className="bg-[#FFFDFA] rounded-xl p-5 shadow-sm border border-[#E6E0D6] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
-              <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-12 h-12 rounded-lg bg-[#FCE4DF] text-[#A83224] flex items-center justify-center shrink-0">
-                  <FileText className="w-6 h-6 text-[#A83224]" />
+                <div className="w-14 h-14 rounded-2xl bg-[#FFFDFA] border border-[#E6E0D6] text-[#1D1B18] flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <UploadCloud className="w-7 h-7 text-[#1C1B19]" />
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-[#1D1B18] truncate">
-                      {stagedFile.name}
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-[#F0ECE4] text-[#716B63] text-[10px] font-mono">
-                      PDF
-                    </span>
+
+                <h3 className="font-serif text-xl sm:text-2xl text-[#1D1B18] font-normal">
+                  Drop your contract here, or <span className="underline decoration-[#716B63] underline-offset-4">browse</span>
+                </h3>
+                <p className="text-xs sm:text-sm text-[#716B63] mt-2 max-w-sm mx-auto leading-relaxed">
+                  Upload PDF or DOCX agreement. Up to 25 MB per document.
+                </p>
+
+                <div className="mt-6 inline-flex items-center gap-2 text-xs text-[#286344] bg-[#E1EFE4] px-3 py-1 rounded-full border border-[#C6DFC9]">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Zero-Data Retention Policy Applied</span>
+                </div>
+              </div>
+
+              {/* Selected File Card if user picked a file */}
+              {selectedFile && (
+                <div className="p-4 rounded-xl bg-[#F0ECE4] border border-[#E6E0D6] flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-lg bg-[#FFFDFA] border border-[#E6E0D6] flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-[#1C1B19]" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-[#1D1B18] truncate">{selectedFile.name}</div>
+                      <div className="text-xs text-[#716B63]">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</div>
+                    </div>
                   </div>
-                  <span className="text-xs text-[#716B63] mt-0.5 flex items-center gap-1.5">
-                    <span>{stagedFile.size}</span>
-                    <span>•</span>
-                    <span className="text-[#286344] flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Valid signature block verified
-                    </span>
-                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedFile(null);
+                      }}
+                    >
+                      Remove
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => startAnalysis(selectedFile)}
+                    >
+                      Start Analysis →
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message if any */}
+              {errorMessage && (
+                <div className="p-4 rounded-xl bg-[#FCE4DF] border border-[#F7C6BE] text-xs text-[#A83224] flex items-center gap-3">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Sample Contracts Instant Test */}
+              <div className="pt-4 border-t border-[#E6E0D6]">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#979087]">Don't have a contract handy?</span>
+                  <span className="text-xs text-[#716B63]">1-Click Instant Test</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    onClick={() => handleSampleSelect('Master Services Agreement - FinTech Co.pdf', 1.4)}
+                    className="p-3.5 rounded-xl bg-[#FFFDFA] border border-[#E6E0D6] hover:border-[#1C1B19] text-left transition-all group"
+                  >
+                    <div className="text-xs font-medium text-[#1D1B18] group-hover:underline truncate">
+                      Master Services Agreement
+                    </div>
+                    <div className="text-[11px] text-[#716B63] mt-1 flex items-center justify-between">
+                      <span>Apex FinTech</span>
+                      <span className="text-[#A83224] font-medium">2 High Risks</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleSampleSelect('Mutual Non-Disclosure Agreement - CyberSec.pdf', 0.5)}
+                    className="p-3.5 rounded-xl bg-[#FFFDFA] border border-[#E6E0D6] hover:border-[#1C1B19] text-left transition-all group"
+                  >
+                    <div className="text-xs font-medium text-[#1D1B18] group-hover:underline truncate">
+                      Mutual NDA Agreement
+                    </div>
+                    <div className="text-[11px] text-[#716B63] mt-1 flex items-center justify-between">
+                      <span>CyberSec Systems</span>
+                      <span className="text-[#286344] font-medium">Standard</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleSampleSelect('Software Development SOW v2.docx', 0.9)}
+                    className="p-3.5 rounded-xl bg-[#FFFDFA] border border-[#E6E0D6] hover:border-[#1C1B19] text-left transition-all group"
+                  >
+                    <div className="text-xs font-medium text-[#1D1B18] group-hover:underline truncate">
+                      Software Development SOW
+                    </div>
+                    <div className="text-[11px] text-[#716B63] mt-1 flex items-center justify-between">
+                      <span>Agency Client</span>
+                      <span className="text-[#92530C] font-medium">1 High Risk</span>
+                    </div>
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setStagedFile(null)}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-[#979087] hover:text-[#1D1B18] hover:bg-[#F0ECE4] transition-colors"
-                  title="Remove document"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isAnalyzing}
-                  onClick={triggerAnalysis}
-                  className="px-4 py-2.5 rounded-lg bg-[#1C1B19] text-white hover:bg-[#34312C] transition-all text-xs font-medium shadow-sm flex items-center gap-1.5 active:scale-98 disabled:opacity-50"
-                >
-                  <span>{isAnalyzing ? 'Analyzing...' : 'Analyze contract'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            </>
           )}
-
-          {/* Micro Document Preview Strip */}
-          <div className="bg-[#F0ECE4]/60 rounded-xl p-4 border border-[#E6E0D6]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-[#716B63]">
-              <FileSearch className="w-4 h-4 text-[#979087]" />
-              <span>
-                Estimated reading: <strong className="text-[#1D1B18] font-medium">8 pages</strong> • Master Services Schedule included
-              </span>
-            </div>
-            <span className="text-xs text-[#365B91] bg-[#E5EBF5] px-2.5 py-1 rounded-md font-medium border border-[#C7D7EC]">
-              Standard NDA & IP clauses detected
-            </span>
-          </div>
         </div>
-
-        {/* Right Column: Pipeline Stepper & Diagnostics (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          {/* Live Pipeline Monitor Card */}
-          <div className="bg-[#FFFDFA] rounded-xl p-6 shadow-sm border border-[#E6E0D6] flex flex-col gap-6">
-            <div className="flex items-center justify-between pb-2 border-b border-[#E6E0D6]/60">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider text-[#716B63] font-semibold">
-                  Orchestration
-                </span>
-                <h2 className="text-base text-[#1D1B18] font-medium">
-                  Analysis Pipeline
-                </h2>
-              </div>
-              <div className="flex items-center gap-1.5 bg-[#F0ECE4] px-2.5 py-1 rounded-full text-[#716B63] text-xs font-medium">
-                <span className="w-2 h-2 rounded-full bg-[#365B91] animate-pulse"></span>
-                <span>Live telemetry</span>
-              </div>
-            </div>
-
-            {/* Responsive Pipeline Stepper (4 stages) */}
-            <div className="grid grid-cols-4 gap-2 relative">
-              {/* Stage 1: Uploading */}
-              <div className="flex flex-col items-center text-center gap-1.5">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm text-xs ${
-                  activeStageIndex > 0 || isAnalyzing
-                    ? 'bg-[#E1EFE4] text-[#286344]'
-                    : 'bg-[#F0ECE4] text-[#716B63]'
-                }`}>
-                  <Check className="w-4 h-4" />
-                </div>
-                <span className="text-xs text-[#1D1B18] font-medium">Uploading</span>
-                <span className="text-[10px] text-[#286344]">
-                  {activeStageIndex > 0 ? 'Completed' : 'Ready'}
-                </span>
-              </div>
-
-              {/* Stage 2: Processing (Active) */}
-              <div className="flex flex-col items-center text-center gap-1.5">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm text-xs ${
-                  activeStageIndex === 1
-                    ? 'bg-[#E5EBF5] text-[#365B91] ring-2 ring-[#365B91]/30'
-                    : activeStageIndex > 1
-                    ? 'bg-[#E1EFE4] text-[#286344]'
-                    : 'bg-[#F0ECE4] text-[#716B63]'
-                }`}>
-                  {activeStageIndex === 1 ? (
-                    <div className="w-3.5 h-3.5 border-2 border-[#365B91] border-t-transparent rounded-full animate-spin"></div>
-                  ) : activeStageIndex > 1 ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    <FileText className="w-3.5 h-3.5 text-[#716B63]" />
-                  )}
-                </div>
-                <span className="text-xs text-[#1D1B18] font-medium">Processing</span>
-                <span className="text-[10px] text-[#365B91] font-medium">
-                  {activeStageIndex === 1 ? 'Extracting...' : activeStageIndex > 1 ? 'Extracted' : 'Queued'}
-                </span>
-              </div>
-
-              {/* Stage 3: Analyzing */}
-              <div className={`flex flex-col items-center text-center gap-1.5 ${activeStageIndex < 2 ? 'opacity-60' : ''}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs ${
-                  activeStageIndex === 2
-                    ? 'bg-[#FFF0D8] text-[#92530C] ring-2 ring-[#92530C]/30'
-                    : activeStageIndex > 2
-                    ? 'bg-[#E1EFE4] text-[#286344]'
-                    : 'bg-[#F0ECE4] text-[#716B63]'
-                }`}>
-                  {activeStageIndex === 2 ? (
-                    <div className="w-3.5 h-3.5 border-2 border-[#92530C] border-t-transparent rounded-full animate-spin"></div>
-                  ) : activeStageIndex > 2 ? (
-                    <Check className="w-4 h-4" />
-                  ) : (
-                    <Brain className="w-3.5 h-3.5 text-[#716B63]" />
-                  )}
-                </div>
-                <span className="text-xs text-[#1D1B18] font-medium">Analyzing</span>
-                <span className="text-[10px] text-[#979087]">
-                  {activeStageIndex === 2 ? 'Evaluating...' : activeStageIndex > 2 ? 'Audited' : 'Risks check'}
-                </span>
-              </div>
-
-              {/* Stage 4: Report */}
-              <div className={`flex flex-col items-center text-center gap-1.5 ${activeStageIndex < 3 ? 'opacity-40' : ''}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs ${
-                  activeStageIndex === 3
-                    ? 'bg-[#E1EFE4] text-[#286344]'
-                    : 'bg-[#F0ECE4] text-[#716B63]'
-                }`}>
-                  <FileCheck className="w-3.5 h-3.5 text-[#716B63]" />
-                </div>
-                <span className="text-xs text-[#1D1B18] font-medium">Report</span>
-                <span className="text-[10px] text-[#979087]">
-                  {activeStageIndex === 3 ? 'Generating...' : 'Score pending'}
-                </span>
-              </div>
-            </div>
-
-            {/* Progress Bar & Deep Diagnostic Indicator */}
-            <div className="flex flex-col gap-2 pt-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-[#1D1B18]">Batch parsing tokens</span>
-                <span className="font-medium text-[#1D1B18] font-mono">{progressPercent}%</span>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-[#F0ECE4] overflow-hidden">
-                <div
-                  className="h-full bg-[#1C1B19] rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }}
-                ></div>
-              </div>
-              <p className="text-xs text-[#716B63] flex items-center gap-1.5 pt-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#365B91]"></span>
-                <span>{statusText}</span>
-              </p>
-            </div>
-
-            {/* Inline Telemetry Feed */}
-            <div className="rounded-lg bg-[#F0ECE4]/70 p-3.5 flex flex-col gap-2">
-              <div className="flex items-center justify-between text-[10px] text-[#979087] uppercase tracking-wider font-semibold">
-                <span>Parser Log</span>
-                <span>Latency 48ms</span>
-              </div>
-              <div className="text-xs text-[#716B63] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span>OCR text normalization</span>
-                  <span className="text-[#286344] font-medium text-[11px]">PASS</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Entity boundary resolution</span>
-                  <span className="text-[#365B91] font-medium text-[11px]">
-                    {activeStageIndex >= 1 ? 'PASS' : 'RUNNING'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Indemnification clause mapping</span>
-                  <span className={`text-[11px] font-medium ${activeStageIndex >= 2 ? 'text-[#286344]' : 'text-[#979087]'}`}>
-                    {activeStageIndex >= 2 ? 'PASS' : 'WAITING'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Informational Reassurance Card */}
-          <div className="bg-[#FFFDFA] rounded-xl p-5 shadow-sm border border-[#E6E0D6] flex items-start gap-4">
-            <div className="w-10 h-10 rounded-lg bg-[#E1EFE4] text-[#286344] flex items-center justify-center shrink-0">
-              <Shield className="w-5 h-5 text-[#286344]" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-[#1D1B18] leading-tight">
-                Asynchronous Background Scan
-              </span>
-              <p className="text-xs text-[#716B63] leading-relaxed">
-                This usually takes 1–2 minutes. You can safely navigate away or explore other documents. We’ll notify you and update your history ledger the moment processing is finalized.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Bottom Feature / Trust Badges (3 items) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-        <div className="bg-[#FFFDFA] rounded-xl p-4 shadow-sm border border-[#E6E0D6] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-lg bg-[#F0ECE4] text-[#1D1B18] flex items-center justify-center shrink-0">
-            <Gavel className="w-5 h-5 text-[#1D1B18]" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-medium text-[#1D1B18] truncate">Jurisdiction Safe</span>
-            <span className="text-[11px] text-[#716B63] truncate">US, UK & EU common standards</span>
-          </div>
-        </div>
-
-        <div className="bg-[#FFFDFA] rounded-xl p-4 shadow-sm border border-[#E6E0D6] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-lg bg-[#F0ECE4] text-[#1D1B18] flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-5 h-5 text-[#1D1B18]" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-medium text-[#1D1B18] truncate">Confidential & Encrypted</span>
-            <span className="text-[11px] text-[#716B63] truncate">Zero model-training retention</span>
-          </div>
-        </div>
-
-        <div className="bg-[#FFFDFA] rounded-xl p-4 shadow-sm border border-[#E6E0D6] flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-lg bg-[#F0ECE4] text-[#1D1B18] flex items-center justify-center shrink-0">
-            <GitCompare className="w-5 h-5 text-[#1D1B18]" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-medium text-[#1D1B18] truncate">Clause Benchmarking</span>
-            <span className="text-[11px] text-[#716B63] truncate">Compared with 14,000+ precedents</span>
-          </div>
-        </div>
-      </div>
+      </DoubleBezel>
     </div>
   );
 };
