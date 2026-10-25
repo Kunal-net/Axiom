@@ -4,7 +4,7 @@ Typed environment settings with strict startup validation.
 """
 
 from typing import List, Union
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -45,9 +45,22 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = Field(default=25, description="Maximum permitted upload size in megabytes")
 
     # AI Service Configuration
-    AI_PROVIDER: str = Field(default="gemini", description="AI provider: gemini | anthropic | openai | rule_benchmark")
-    AI_API_KEY: Union[str, None] = Field(default=None, description="Optional server-side API key for LLM analysis")
-    AI_MODEL: str = Field(default="gemini-1.5-pro", description="LLM model identifier")
+    AI_PROVIDER: str = Field(default="groq", description="AI provider: groq | gemini | anthropic | openai | rule_benchmark")
+    AI_API_KEY: Union[str, None] = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "GROQ_API_KEY",
+            "AI_API_KEY",
+            "GEMINI_API_KEY",
+            "GOOGLE_API_KEY",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+        ),
+        description="Optional server-side API key for LLM analysis",
+    )
+    AI_MODEL: str = Field(default="llama-3.3-70b-versatile", description="LLM model identifier")
+
+
 
     # Logging
     LOG_LEVEL: str = Field(default="INFO", description="Minimum log level: DEBUG | INFO | WARNING | ERROR")

@@ -67,10 +67,32 @@ def get_or_create_demo_user(db: Session) -> User:
             sha256_checksum="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             status="needs_review",
             page_count=8,
-            summary="This contract contains several clauses that may be significantly unfavorable to you, particularly around unilateral termination, intellectual property ownership, and uncapped indemnification liability. We strongly recommend requesting targeted redlines before proceeding to execution.",
-            extracted_text="--- PAGE 1 ---\nMaster Services Agreement & Freelance Consulting Contract...",
+            extracted_text=(
+                "--- PAGE 1 ---\n"
+                "MASTER SERVICES AGREEMENT & FREELANCE CONSULTING CONTRACT\n\n"
+                "Section 4.3 • Fees and Payment\n"
+                "Client shall remit payment within ninety (90) days following formal acceptance of deliverables. "
+                "Client reserves the right to withhold any disputed portion without interest or penalty pending internal audit.\n\n"
+                "--- PAGE 2 ---\n"
+                "Section 5.2 • Termination\n"
+                "The Client may terminate this Agreement at any time, for any reason, without prior notice and without liability.\n\n"
+                "--- PAGE 3 ---\n"
+                "Section 6.2 • Intellectual Property\n"
+                "Contractor irrevocably transfers, assigns, and sets over to Client all right, title, and interest throughout the universe "
+                "in all Work Product, including all pre-existing tools, libraries, and background frameworks incorporated therein, without reservation.\n\n"
+                "--- PAGE 4 ---\n"
+                "Section 7.1 • Confidentiality\n"
+                "Confidential Information shall encompass all disclosures made by Client, whether marked confidential or not, "
+                "including ideas discussed informally, with confidentiality obligations enduring in perpetuity.\n\n"
+                "--- PAGE 5 ---\n"
+                "Section 9.1 • Liability & Indemnity\n"
+                "Contractor shall defend, indemnify, and hold harmless Client, its affiliates, directors, officers, employees, and agents "
+                "from and against any and all claims, liabilities, losses, damages, costs, and expenses (including attorney's fees and consequential "
+                "or punitive damages) arising out of or related to Contractor's performance.\n"
+            ),
             last_analyzed_at=utc_now(),
         )
+
         db.add(doc)
         db.commit()
 

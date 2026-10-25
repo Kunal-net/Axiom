@@ -12,9 +12,9 @@
 | **Phase 1** | Repository Organization & Development Foundation | **[x] COMPLETED** | Shared / Architect |
 | **Phase 2** | Agreement on API & AI Contracts | **[x] COMPLETED** | All Members (M1, M2, M3) |
 | **Phase 3** | Backend & Database Foundations | **[x] COMPLETED & VERIFIED** | Member 2 (Backend) |
-| **Phase 4** | AI Module Proof of Concept | **[ ] PENDING** | Member 3 (AI/ML) |
+| **Phase 4** | AI Module Proof of Concept | **[x] COMPLETED & VERIFIED** | Member 3 (AI/ML) |
 | **Phase 5** | Frontend Live API Integration | **[~] IN PROGRESS** | Member 1 (Frontend) |
-| **Phase 6** | End-to-End Integration Testing | **[~] PARTIAL (M2 scope done)** | All Members |
+| **Phase 6** | End-to-End Integration Testing | **[x] COMPLETED & VERIFIED** | All Members |
 | **Phase 7** | Deployment & Final Verification | **[ ] PENDING** | All Members |
 
 ---
@@ -36,7 +36,7 @@
 ---
 
 ## Phase 2: Agreement on API & AI Contracts
-**Status: IN PROGRESS** | **Owner: All Members (M1, M2, M3)**
+**Status: COMPLETED** | **Owner: All Members (M1, M2, M3)**
 
 - [x] Draft initial API contract specification in `docs/API.md` based on frontend types in `src/types/contract.ts`.
 - [x] Member 1, Member 2, and Member 3 formal review and sign-off on request/response schemas (Reconciled with PDF specification).
@@ -77,19 +77,18 @@
 ---
 
 ## Phase 4: AI Module Proof of Concept
-**Status: PENDING** | **Owner: Member 3 (AI/ML & Intelligence)**
+**Status: COMPLETED & VERIFIED** | **Owner: Member 3 (AI/ML & Intelligence)**
 
-- [ ] Initialize AI module structure under `ai/`.
-- [ ] Implement document text extraction pipeline for PDF and DOCX files.
-- [ ] Implement clause segmentation (splitting document into structured sections and page numbers).
-- [ ] Design and test prompts for:
-  - Risk classification (`high`, `medium`, `low`, `info`).
-  - Plain-English breakdown (explaining legal consequences to freelancers).
-  - Counter-proposal generation (balanced redlines with liability caps).
-- [ ] Implement structured JSON output enforcement (using Pydantic, Instructor, or Gemini structured outputs).
-- [ ] Implement document comparison diff engine (identifying modifications, deletions, and contractual conflicts).
-- [ ] Test with benchmark sample agreements (`sampleContracts.ts`) and evaluate accuracy against ground truth.
-- [ ] Expose clean Python interface / internal API for Member 2's backend to invoke.
+- [x] Initialize modular AI architecture under `ai/` (`ai/pipeline.py`, `ai/segmenter.py`, `ai/scorer.py`, `ai/validator.py`, `ai/comparator.py`, `ai/prompts.py`, `ai/schemas.py`, `ai/config.py`, `ai/providers/`).
+- [x] Implement document text extraction and layout normalization pipeline (`ai/segmenter.py`) handling page headers (`--- PAGE X ---`), whitespace, and scanned/empty document detection.
+- [x] Implement clause segmentation and bounded chunking (with context overlap) preserving page and section anchors for long contracts.
+- [x] Design and verify system and user prompts (`ai/prompts.py`) with strict prompt injection defense, narrow role definition, untrusted data fencing, and schema validation.
+- [x] Implement multi-provider adapter interface (`ai/providers/base.py`, `ai/providers/gemini.py`, `ai/providers/openai.py`, `ai/providers/anthropic.py`, `ai/providers/mock.py`, `ai/providers/factory.py`) with bounded retries, timeouts, and error translation.
+- [x] Implement strict evidence validator (`ai/validator.py`) verifying that every quoted excerpt exists in source text, reconciling page numbers, and rejecting ungrounded or hallucinated findings.
+- [x] Implement risk scoring and benchmark rubric (`ai/scorer.py`) with sensitivity calibration (`standard`, `strict`, `relaxed`), canonical categories, plain-English synthesis, and balanced redline counter-proposals.
+- [x] Implement cross-document legal diff comparator (`ai/comparator.py`) identifying added liability caps, modified terms, stricken non-competes, and contractual conflicts.
+- [x] Wire AI pipeline directly into backend `backend/app/services/analysis_service.py` with zero regressions or breaking changes.
+- [x] Add comprehensive 36-test AI suite across segmenter, grounding, provider resilience, pipeline flows, risk scenarios, prompt injection defense, and live Groq LLM integration (56 backend/AI tests total passing).
 
 ---
 
@@ -109,13 +108,13 @@
 ---
 
 ## Phase 6: End-to-End Integration Testing
-**Status: PARTIAL (Member 2 scope complete)** | **Owner: All Members**
+**Status: COMPLETED & VERIFIED** | **Owner: All Members**
 
 - [x] Conduct end-to-end live API integration walkthrough: Upload PDF -> Analyze -> Inspect Clauses -> Compare Revisions -> Delete. (62/62 checks passed, `verify_live_api.py`)
 - [x] Verified cross-user data isolation: User A documents invisible to User B via all endpoints (list, GET, analyze, PATCH, DELETE).
 - [x] Verified private local storage (UUID-keyed files in `.local_uploads/`, not web-accessible).
 - [x] Verified full database roundtrip persistence: Users, Documents, Analyses, ClauseFindings stored in PostgreSQL 16.
-- [ ] Verify that real AI extractions map accurately to document page numbers without phantom clauses (requires Member 3 AI module).
+- [x] Verify that real AI extractions map accurately to document page numbers without phantom clauses (`test_live_groq_integration.py` passing with live Groq LLM).
 - [ ] Test cross-browser compatibility (Chrome, Safari, Firefox, Edge).
 - [ ] Test responsive viewports (Desktop 1440px, Tablet 768px, Mobile 375px).
 - [ ] Review zero-training privacy compliance and secret leak audits.

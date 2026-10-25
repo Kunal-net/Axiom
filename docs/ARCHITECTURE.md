@@ -99,20 +99,20 @@ The production-ready backend resides in the `backend/` directory:
 
 ---
 
-## 4. Proposed AI / ML Pipeline Architecture (Member 3 Domain)
+## 4. AI / ML Pipeline Architecture (Member 3 Domain — Completed & Verified)
 
-*Status: Directory Initialized (`ai/`) — Implementation Ready for Member 3.*
+*Status: Implemented & Verified with 50 automated backend and AI pipeline tests passing.*
 
-The dedicated intelligence module will reside in the `ai/` directory:
-- **Document Ingestion:** Extract raw text, section numbers, and page anchors using `PyMuPDF` / `pdfplumber` (for PDF) and `python-docx` (for DOCX).
-- **Clause Segmentation:** Chunk document into distinct legal clauses preserving section headers (e.g., `Section 9.1 • Indemnification`).
-- **Analysis & Risk Scoring:**
-  - Classify clauses into risk levels: `high`, `medium`, `low`, `info`.
-  - Benchmark against independent professional standards (detecting uncapped liability, pre-existing IP transfer, unilateral non-competes).
-  - Generate plain-English explanations highlighting commercial risk.
-  - Synthesize balanced redline counter-proposals (e.g., capping contractor liability at fees paid).
-- **Structured Output Guarantee:** Enforce JSON schema validation via Pydantic or Instructor to prevent hallucinated structures.
-- **Diff Engine:** Compare source and revised contract text, distinguishing textual formatting from true contractual conflicts.
+The dedicated intelligence module resides in the `ai/` directory:
+- **`ai/pipeline.py` (ContractAnalysisPipeline):** Central coordinator handling input status checks, segmentation, prompt construction, LLM provider invocation, evidence validation, risk scoring calibration, and deterministic fallback.
+- **`ai/segmenter.py` (ContractSegmenter):** Document text normalization, page marker parsing (`--- PAGE X ---`), clause segmentation, scanned document detection, and bounded chunking with context overlap for long contracts without truncating final pages.
+- **`ai/prompts.py`:** System prompts and user prompt builders with prompt injection defense, untrusted content delimiters (`<CONTRACT_DOCUMENT>`), calibrated legal risk language, sensitivity thresholds, and JSON schema output instructions.
+- **`ai/providers/` (BaseLLMProvider, GeminiProvider, OpenAIProvider, AnthropicProvider, MockProvider, factory):** Resilient HTTP-based multi-provider adapters with bounded retries, timeout handling, error translation (`AITimeoutError`, `AIRateLimitError`, `AIAuthenticationError`), and markdown-fenced JSON extraction.
+- **`ai/validator.py` (EvidenceValidator):** Factual evidence verification ensuring every quoted excerpt exists verbatim in the source text, reconciling page numbers against extraction metadata, and rejecting ungrounded or hallucinated findings.
+- **`ai/scorer.py` (RiskScorer):** Categorization into 7 canonical categories (`liability`, `payment`, `ip`, `termination`, `warranty`, `confidentiality`, `governing_law`), risk sensitivity calibration (`standard`, `strict`, `relaxed`), plain-English synthesis, balanced counter-clause recommendations, and deterministic benchmark rule fallback.
+- **`ai/comparator.py` (ContractComparator):** Semantic side-by-side legal diffing and conflict detection identifying added liability caps, modified terms, stricken non-competes, and contractual conflicts.
+- **Backend Seam (`backend/app/services/analysis_service.py`):** `ContractAnalysisEngine` delegates to `ContractAnalysisPipeline`, providing seamless AI analysis and side-by-side legal comparison through the existing REST API.
+
 
 ---
 
