@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
-    "verify": "./scripts/verify.sh"
+    "verify": "../scripts/verify.sh"
   },
   "dependencies": {
     "clsx": "^2.1.1",

@@ -1,6 +1,6 @@
 # Axiom — API Contracts & Schema Specification
 
-> Authoritative contract specification connecting the Frontend (`src/services/contractService.ts`),
+> Authoritative contract specification connecting the Frontend (`frontend/src/services/contractService.ts`),
 > Backend REST Gateway (Member 2), and AI/ML Intelligence Pipeline (Member 3).
 > Fully reconciled with `Axiom_Member_2_Backend_Master_Prompt.pdf` specifications.
 

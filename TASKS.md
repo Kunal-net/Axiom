@@ -23,11 +23,12 @@
 **Status: COMPLETED** | **Owner: Shared**
 
 - [x] **Repository Inspection:** Verified Git history, untracked files, package manifests, and dependencies.
-- [x] **Frontend Status Audit:** Confirmed all 8 canonical Stitch screens exist and are functional in `src/pages/`.
-- [x] **Code Quality Sweep:** Resolved all linter warnings across component imports, JSX purity, and unused variables. `npm run lint` reaches 0 warnings, 0 errors.
-- [x] **Regression Suite:** Verified 8/8 unit and service tests passing via `npm test`.
-- [x] **Production Bundle:** Verified clean TypeScript build (`tsc -b && vite build`).
-- [x] **Unified CI Script:** Created `scripts/verify.sh` and npm script `npm run verify`.
+- [x] **Repository Reorganization:** Safely reorganized into modular structure: `frontend/` (React 19 + TypeScript + Vite), `backend/` (FastAPI + PostgreSQL), `ai/` (scaffolded with `.gitkeep`), `docs/` (consolidated specs & architecture), and `scripts/` (unified CI/CD).
+- [x] **Frontend Status Audit:** Confirmed all 8 canonical Stitch screens exist and are functional in `frontend/src/pages/`.
+- [x] **Code Quality Sweep:** Resolved all linter warnings across component imports, JSX purity, and unused variables. Oxlint reaches 0 warnings, 0 errors.
+- [x] **Regression Suite:** Verified 9/9 unit and service tests passing via Vitest.
+- [x] **Production Bundle:** Verified clean TypeScript build (`tsc -b && vite build`) producing `frontend/dist/`.
+- [x] **Unified CI Script:** Maintained `scripts/verify.sh` verifying frontend lint, tests, build, and backend pytest.
 - [x] **Dead Code / Duplicate Cleanup:** Eliminated redundant `axiom_project_essentials/` duplicate folder.
 - [x] **Safe Environment Config:** Verified `.env.example` placeholder template and strict `.gitignore` rules.
 - [x] **Team Ownership System:** Established responsibilities for Member 1, Member 2, and Member 3.

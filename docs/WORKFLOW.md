@@ -10,10 +10,10 @@ To prevent merge conflicts and coordination overhead, each team member has prima
 
 | Member | Primary Domain | Subdirectories / Files Owned |
 |---|---|---|
-| **Member 1 (Frontend, Integration & QA)** | Frontend UI, Client Services & E2E | `src/pages/`, `src/components/`, `src/services/contractService.ts`, `src/App.tsx`, `index.html` |
+| **Member 1 (Frontend, Integration & QA)** | Frontend UI, Client Services & E2E | `frontend/src/pages/`, `frontend/src/components/`, `frontend/src/services/contractService.ts`, `frontend/src/App.tsx`, `frontend/index.html` |
 | **Member 2 (Backend & Database)** | Server Application, APIs & DB | `backend/`, `backend/routes/`, `backend/models/`, `backend/migrations/` |
 | **Member 3 (AI/ML & Intelligence)** | LLM Pipeline, Extraction & Prompts | `ai/`, `ai/pipeline/`, `ai/prompts/`, `ai/eval/` |
-| **Shared (Requires Team Sign-Off)** | Core Contracts, Config & Documentation | `src/types/contract.ts`, `docs/API.md`, `.env.example`, `TASKS.md`, `ARCHITECTURE.md` |
+| **Shared (Requires Team Sign-Off)** | Core Contracts, Config & Documentation | `frontend/src/types/contract.ts`, `docs/API.md`, `.env.example`, `TASKS.md`, `docs/ARCHITECTURE.md` |
 
 ---
 
@@ -34,14 +34,14 @@ All development branches must be created from `master` and use designated prefix
 2. **Mandatory Pre-Merge Verification:**
    Before pushing a branch or requesting review, run the automated verification pipeline:
    ```bash
-   npm run verify
+   ./scripts/verify.sh
    ```
-   A PR must never be merged if `npm run verify` reports errors, test failures, or lint warnings.
+   A PR must never be merged if `./scripts/verify.sh` reports errors, test failures, or lint warnings.
 3. **Peer Review Rule:**
-   - Changes to `src/` must be reviewed by Member 1.
+   - Changes to `frontend/` must be reviewed by Member 1.
    - Changes to `backend/` must be reviewed by Member 2.
    - Changes to `ai/` must be reviewed by Member 3.
-   - Changes to `src/types/contract.ts` or `docs/API.md` require approval from all three members.
+   - Changes to `frontend/src/types/contract.ts` or `docs/API.md` require approval from all three members.
 
 ---
 
@@ -71,7 +71,7 @@ git rebase origin/master
 
 # 3. If a conflict occurs in shared types, consult the teammate owning that domain
 # 4. After resolving, re-run verification
-npm run verify
+./scripts/verify.sh
 
 # 5. Push updated branch
 git push origin feature/mX-my-branch --force-with-lease

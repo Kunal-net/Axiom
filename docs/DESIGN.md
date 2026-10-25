@@ -830,7 +830,7 @@ Use accessible form controls.
 
 Keep the application responsive.
 Suggested organization
-src/
+frontend/src/
   components/
     ui/
     layout/

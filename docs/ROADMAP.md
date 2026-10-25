@@ -5,7 +5,7 @@
 
 ---
 
-## Phase 1: Foundation & Frontend (Completed)
+## Phase 1: Foundation, Reorganization & Frontend (Completed)
 - [x] Inspect existing repository, stack, and scripts.
 - [x] Discover and apply design skills (`design-taste-frontend`, `gpt-taste`, `stitch-design-taste`).
 - [x] Verify project documentation and environment setup.
@@ -20,41 +20,44 @@
 - [x] Settings/profile preferences (`#/settings`)
 - [x] Shared navigation, responsive layouts, double-bezel primitives
 - [x] Loading, empty, and simulated enclave states
-- [x] Unified verification script (`npm run verify` passing 100%)
+- [x] Safely reorganize repository into modular `frontend/`, `backend/`, `ai/`, `docs/`, and `scripts/` layout
+- [x] Unified verification script (`./scripts/verify.sh` passing 100%)
 
 ---
 
-## Phase 2: Contract Alignment & Protocol Freeze (In Progress)
+## Phase 2: Contract Alignment & Protocol Freeze (Completed)
 - [x] Draft REST API specification in [docs/API.md](file:///Users/kunalsuryanshi/Documents/axiom/docs/API.md).
-- [ ] Sign-off on request/response schemas across Member 1, Member 2, and Member 3.
-- [ ] Finalize analysis delivery mechanism (Polling vs Server-Sent Events).
-- [ ] Define backend-to-AI internal payload interfaces.
+- [x] Sign-off on request/response schemas across Member 1, Member 2, and Member 3.
+- [x] Finalize analysis delivery mechanism (synchronous immediate response with honest lifecycle states).
+- [x] Define backend-to-AI internal payload interfaces.
 
 ---
 
-## Phase 3: Backend & Database Foundations (Pending)
-- [ ] Member 2: Initialize `backend/` application (FastAPI recommended).
-- [ ] Member 2: Set up PostgreSQL / SQLite database with migrations.
-- [ ] Member 2: Implement REST endpoints (`/upload`, `/analyze`, `/documents`, `/compare`).
+## Phase 3: Backend & Database Foundations (Completed & Verified)
+- [x] Member 2: Initialize `backend/` application using FastAPI, Uvicorn, and Pydantic v2.
+- [x] Member 2: Set up PostgreSQL 16 / SQLite database with SQLAlchemy 2.0 ORM and Alembic migrations.
+- [x] Member 2: Implement REST endpoints (`/upload`, `/analyze`, `/documents`, `/compare`, `/user/profile`).
+- [x] Member 2: Automated test suite with 21 unit, integration, and security tests passing.
 
 ---
 
 ## Phase 4: AI & Machine Learning Pipeline (Pending)
-- [ ] Member 3: Initialize `ai/` module structure.
+- [x] Initialize `ai/` directory structure with `.gitkeep`.
 - [ ] Member 3: Implement PDF/DOCX text & layout extraction.
 - [ ] Member 3: Implement clause segmentation and prompt-engineered risk scoring.
-- [ ] Member 3: Enforce structured JSON outputs matching `src/types/contract.ts`.
+- [ ] Member 3: Enforce structured JSON outputs matching `frontend/src/types/contract.ts`.
 
 ---
 
-## Phase 5: Live API Integration (Pending)
-- [ ] Member 1: Wire up live HTTP calls in `src/services/contractService.ts` (`VITE_USE_MOCK_DATA=false`).
-- [ ] Member 1: Connect live file upload, job polling, and document comparison.
+## Phase 5: Live API Integration (In Progress)
+- [x] Member 1: Wire up live HTTP calls in `frontend/src/services/contractService.ts` (`VITE_USE_MOCK_DATA=false`).
+- [x] Member 1: Connect live file upload, analysis trigger, and document comparison.
+- [ ] Member 1: Connect live document pagination and error boundaries.
 
 ---
 
-## Phase 6: End-to-End Verification & Delivery (Pending)
-- [ ] Run automated end-to-end integration tests.
+## Phase 6: End-to-End Verification & Delivery (Partial)
+- [x] Live API end-to-end integration walkthrough (62/62 checks passed via `verify_live_api.py`).
+- [ ] Run automated end-to-end integration tests across real AI extractions.
 - [ ] Verify security enclave isolation and zero-data retention policies.
 - [ ] Production build and staging deployment.
-

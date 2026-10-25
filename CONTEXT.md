@@ -7,10 +7,10 @@ Axiom is an AI-powered contract intelligence and analysis platform designed for 
 
 ## Current Implementation Status
 
-- **Frontend:** **Completed & Verified.** All 8 canonical screens are implemented in React 19 + TypeScript + Vite, using approved Google Stitch design tokens and Newsreader + Inter typography.
-- **Service Layer:** High-fidelity in-memory mock service active (`src/services/contractService.ts`), providing realistic 4-stage enclave analysis simulation, side-by-side diff comparisons, and local profile management.
-- **Backend & Database:** Pending architecture sign-off and implementation by Member 2.
-- **AI/ML Intelligence:** Pending architecture sign-off and implementation by Member 3.
+- **Frontend (`frontend/`):** **Completed & Verified.** All 8 canonical screens are implemented in React 19 + TypeScript + Vite, using approved Google Stitch design tokens and Newsreader + Inter typography.
+- **Service Layer (`frontend/src/services/`):** High-fidelity in-memory mock service active (`contractService.ts`), providing realistic 4-stage enclave analysis simulation, side-by-side diff comparisons, and local profile management.
+- **Backend & Database (`backend/`):** **Completed & Verified.** Implemented by Member 2 using FastAPI, PostgreSQL 16, SQLAlchemy 2.0, Alembic migrations, and 21 passing automated tests.
+- **AI/ML Intelligence (`ai/`):** Directory initialized and prepared for Member 3's AI/ML pipeline implementation.
 
 ---
 
@@ -20,8 +20,8 @@ Axiom is an AI-powered contract intelligence and analysis platform designed for 
 *The frontend application is already complete. Member 1 maintains the existing architecture and leads integration.*
 
 **Responsibilities:**
-- Maintain and safeguard the completed frontend codebase (`src/`).
-- Seamlessly transition `src/services/contractService.ts` from mock mode to live backend REST endpoints.
+- Maintain and safeguard the completed frontend codebase (`frontend/src/`).
+- Seamlessly transition `frontend/src/services/contractService.ts` from mock mode to live backend REST endpoints.
 - Handle authentication sessions, network failures, loading indicators, empty states, and toast notifications.
 - Ensure pixel-perfect responsiveness across desktop (1440px), tablet (768px), and mobile viewports.
 - Lead end-to-end integration walkthroughs and quality assurance testing.

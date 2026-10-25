@@ -20,15 +20,15 @@ echo "========================================================"
 
 echo ""
 echo "--> 1. Running Oxlint (Static Analysis)..."
-npm run lint
+npm --prefix frontend run lint
 
 echo ""
 echo "--> 2. Running Vitest (Unit & Service Tests)..."
-npm test
+npm --prefix frontend test
 
 echo ""
 echo "--> 3. Running TypeScript & Vite Production Build..."
-npm run build
+npm --prefix frontend run build
 
 if [ -f "backend/.venv/bin/pytest" ]; then
   echo ""

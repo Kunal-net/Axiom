@@ -10,8 +10,8 @@ Axiom will be developed across sessions and may be handled by different coding a
 Maintain distinct files for:
 - `MEMORY.md`: concise evolving project state and durable discoveries.
 - `CONTEXT.md`: product goals, domain terms, and business rules.
-- `ARCHITECTURE.md`: actual system structure and data flow.
-- `DESIGN.md`: approved visual system and Stitch fidelity requirements.
+- `docs/ARCHITECTURE.md`: actual system structure and data flow.
+- `docs/DESIGN.md`: approved visual system and Stitch fidelity requirements.
 - `AGENTS.md`: mandatory coding-agent workflow and engineering rules.
 
 Keep setup, API, testing, and roadmap details in focused documents under `docs/`.
