@@ -14,10 +14,14 @@ describe('Axiom Environment Configuration Validator', () => {
     expect(['development', 'staging', 'production', 'test']).toContain(config.appEnv);
   });
 
-  it('correctly reports mock mode state', () => {
-    const config = validateEnv();
-    // Default in development is true
-    expect(config.useMockData).toBe(true);
+  it('correctly reports mock mode state according to environment configuration', () => {
+    vi.stubEnv('VITE_USE_MOCK_DATA', 'true');
+    expect(validateEnv().useMockData).toBe(true);
+
+    vi.stubEnv('VITE_USE_MOCK_DATA', 'false');
+    expect(validateEnv().useMockData).toBe(false);
+
+    vi.unstubAllEnvs();
   });
 
   it('freezes the returned configuration object to prevent runtime tampering', () => {

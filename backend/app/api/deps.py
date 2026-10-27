@@ -4,7 +4,7 @@ Authentication, authorization, and database session injection.
 """
 
 from typing import Optional
-from fastapi import Depends, Header
+from fastapi import Cookie, Depends, Header
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
@@ -200,29 +200,35 @@ def get_or_create_demo_user(db: Session) -> User:
 
 async def get_current_user(
     authorization: Optional[str] = Header(default=None),
+    access_token: Optional[str] = Cookie(default=None),
     db: Session = Depends(get_db),
 ) -> User:
     """
-    Extracts and authenticates user from Bearer JWT token.
-    In development mode, falls back to demo user if no token is provided.
-    In production mode, strictly enforces valid Bearer JWT tokens.
+    Extracts and authenticates user from Bearer JWT token or HttpOnly access_token cookie.
+    Enforces valid server-side authentication with zero anonymous bypass.
     """
+    token: Optional[str] = None
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ")[1].strip()
-        payload = decode_access_token(token)
-        user_id = payload.get("sub")
-        if not user_id:
-            raise UnauthorizedError(message="Invalid token payload", code="INVALID_TOKEN")
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise UnauthorizedError(message="User account not found", code="USER_NOT_FOUND")
-        return user
+    elif access_token:
+        token = access_token.strip()
 
-    # Development mode fallback to enable zero-friction local UI workflow
-    if not settings.is_production:
-        return get_or_create_demo_user(db)
+    if not token:
+        raise UnauthorizedError(
+            message="Authentication credentials were not provided. Please sign in.",
+            code="UNAUTHORIZED",
+        )
 
-    raise UnauthorizedError(message="Authentication header with Bearer token is required", code="UNAUTHORIZED")
+    payload = decode_access_token(token)
+    user_id = payload.get("sub")
+    if not user_id:
+        raise UnauthorizedError(message="Invalid token payload", code="INVALID_TOKEN")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise UnauthorizedError(message="User account not found or deactivated", code="USER_NOT_FOUND")
+
+    return user
 
 
 async def get_current_active_user(

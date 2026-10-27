@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { RiskBadge } from '../components/ui/RiskBadge';
-import { PRIMARY_CONTRACT } from '../data/sampleContracts';
 import { ClauseFinding, ContractDocument } from '../types/contract';
 import { contractService } from '../services/contractService';
 
@@ -24,22 +23,113 @@ interface AnalysisResultsPageProps {
 }
 
 export const AnalysisResultsPage: React.FC<AnalysisResultsPageProps> = ({ docId, onNavigate }) => {
-  const [document, setDocument] = useState<ContractDocument>(PRIMARY_CONTRACT);
-  const [selectedClauseId, setSelectedClauseId] = useState<string>('clause-3'); // Default to Unlimited Indemnity (high risk)
+  const [document, setDocument] = useState<ContractDocument | null>(null);
+  const [loadedDocId, setLoadedDocId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [selectedClauseId, setSelectedClauseId] = useState<string>('');
   const [filterSeverity, setFilterSeverity] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedRevision, setCopiedRevision] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [currentPage, setCurrentPage] = useState(3);
+  const [currentPage, setCurrentPage] = useState(1);
   const [mobileTab, setMobileTab] = useState<'clauses' | 'viewer' | 'details'>('clauses');
 
+  const isLoading = loadedDocId === null && !loadError;
+
   useEffect(() => {
-    if (docId) {
-      contractService.getDocumentById(docId).then((doc) => {
-        if (doc) setDocument(doc);
-      });
-    }
+    let active = true;
+
+    const resolveAndLoad = async () => {
+      let resolvedId = docId;
+      if (!resolvedId) {
+        const docs = await contractService.getDocuments();
+        if (docs.length > 0) {
+          resolvedId = docs[0].id;
+        } else if (contractService.isMock) {
+          resolvedId = contractService.getDefaultDocument().id;
+        }
+      }
+
+      if (!resolvedId) {
+        if (active) {
+          setLoadError('No contracts found in your workspace. Please upload or select a contract from your documents.');
+          setLoadedDocId('none');
+        }
+        return;
+      }
+
+      try {
+        const doc = await contractService.getDocumentById(resolvedId);
+        if (!active) return;
+        if (doc) {
+          setDocument(doc);
+          if (doc.clauses && doc.clauses.length > 0) {
+            setSelectedClauseId(doc.clauses[0].id);
+            setCurrentPage(doc.clauses[0].pageNumber || 1);
+          }
+        } else if (contractService.isMock) {
+          const defaultDoc = contractService.getDefaultDocument();
+          setDocument(defaultDoc);
+          if (defaultDoc.clauses && defaultDoc.clauses.length > 0) {
+            setSelectedClauseId(defaultDoc.clauses[0].id);
+            setCurrentPage(defaultDoc.clauses[0].pageNumber || 1);
+          }
+        } else {
+          setLoadError(`Document "${resolvedId}" was not found or could not be loaded from backend.`);
+        }
+        setLoadedDocId(resolvedId);
+      } catch (err) {
+        if (!active) return;
+        setLoadError(`Failed to load document: ${err instanceof Error ? err.message : String(err)}`);
+        setLoadedDocId(resolvedId);
+      }
+    };
+
+    resolveAndLoad();
+
+    return () => {
+      active = false;
+    };
   }, [docId]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full px-6 sm:px-10 py-16 max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
+        <div className="w-10 h-10 border-2 border-[#1C1B19] border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-sm font-medium text-[#716B63]">Loading analysis workspace for {docId || 'contract'}...</p>
+      </div>
+    );
+  }
+
+  if (loadError || !document) {
+    return (
+      <div className="w-full px-6 sm:px-10 py-12 max-w-6xl mx-auto space-y-6">
+        <div className="bg-[#FCE4DF] border border-[#F7C6BE] rounded-xl p-6 text-[#A83224] flex flex-col gap-3">
+          <div className="flex items-center gap-2 font-semibold">
+            <AlertTriangle className="w-5 h-5" />
+            <span>Contract Workspace Not Available</span>
+          </div>
+          <p className="text-sm text-[#782419]">
+            {loadError || 'The requested contract analysis could not be found or has not been completed.'}
+          </p>
+          <div className="pt-2 flex gap-3">
+            <button
+              onClick={() => onNavigate('analyze')}
+              className="px-4 py-2 bg-[#1C1B19] text-white rounded-lg text-xs font-medium hover:bg-[#34312C] transition-colors"
+            >
+              Upload New Contract
+            </button>
+            <button
+              onClick={() => onNavigate('dashboard')}
+              className="px-4 py-2 bg-[#FFFDFA] text-[#1D1B18] border border-[#E6E0D6] rounded-lg text-xs font-medium hover:bg-[#F0ECE4] transition-colors"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const selectedClause = document.clauses.find((c) => c.id === selectedClauseId) || document.clauses[0];
 
@@ -63,6 +153,7 @@ export const AnalysisResultsPage: React.FC<AnalysisResultsPageProps> = ({ docId,
   };
 
   const navigateNextFinding = () => {
+    if (!document || !document.clauses || document.clauses.length === 0) return;
     const currentIndex = document.clauses.findIndex((c) => c.id === selectedClauseId);
     if (currentIndex < document.clauses.length - 1) {
       const nextClause = document.clauses[currentIndex + 1];
@@ -83,9 +174,22 @@ export const AnalysisResultsPage: React.FC<AnalysisResultsPageProps> = ({ docId,
           <div className="w-7 h-7 rounded-lg bg-[#1C1B19] text-white flex items-center justify-center shrink-0">
             <FileText className="w-3.5 h-3.5" />
           </div>
-          <div className="min-w-0 flex items-center gap-2">
+          <div className="min-w-0 flex items-center gap-2 flex-wrap">
             <span className="font-medium text-sm text-[#1D1B18] truncate">{document.name}</span>
             <span className="text-[11px] text-[#979087] hidden sm:inline">• {document.pageCount} Pages</span>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+              document.provider === 'mock' || document.id.startsWith('doc-demo-')
+                ? 'bg-[#FFF0D8] text-[#92530C] border-[#F5DEC2]'
+                : document.provider === 'rule_benchmark'
+                ? 'bg-[#F0ECE4] text-[#716B63] border-[#E6E0D6]'
+                : 'bg-[#E1EFE4] text-[#286344] border-[#C6DFC9]'
+            }`}>
+              {document.provider === 'mock' || document.id.startsWith('doc-demo-')
+                ? 'Demo Simulation'
+                : document.provider === 'rule_benchmark'
+                ? 'Deterministic Fallback (Rule Benchmark)'
+                : `Live AI: ${document.modelName || 'Groq'}`}
+            </span>
           </div>
         </div>
 
@@ -247,8 +351,8 @@ export const AnalysisResultsPage: React.FC<AnalysisResultsPageProps> = ({ docId,
             </div>
 
             {/* Document Title Stamp */}
-            <div className="hidden sm:block text-xs font-serif text-[#1D1B18]">
-              Master Services Agreement — Apex FinTech Solutions
+            <div className="hidden sm:block text-xs font-serif text-[#1D1B18] truncate max-w-sm">
+              {document.name}
             </div>
 
             {/* Zoom Controls */}
@@ -279,208 +383,93 @@ export const AnalysisResultsPage: React.FC<AnalysisResultsPageProps> = ({ docId,
             >
               {/* Document Header Plate */}
               <div className="text-center pb-6 border-b border-[#E6E0D6]/80 font-sans space-y-1">
-                <div className="text-[10px] uppercase tracking-widest text-[#979087]">Confidential Master Agreement</div>
-                <div className="text-base font-semibold text-[#1D1B18]">MASTER SERVICES AGREEMENT</div>
-                <div className="text-[11px] text-[#716B63]">Apex Financial Technologies Inc. & Alex Rivera Consulting</div>
+                <div className="text-[10px] uppercase tracking-widest text-[#979087]">Axiom Contract Intelligence Viewer</div>
+                <div className="text-base font-semibold text-[#1D1B18]">{document.name}</div>
+                <div className="text-[11px] text-[#716B63]">Document ID: {document.id}</div>
               </div>
 
-              {/* Page Content depending on page number */}
-              {currentPage === 2 && (
-                <div className="space-y-6">
-                  <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider">
-                    SECTION 6: INTELLECTUAL PROPERTY & DELIVERABLES
-                  </div>
-                  <p className="text-justify text-[#716B63]">
-                    6.1 <strong className="text-[#1D1B18]">Custom Deliverables.</strong> All final custom documentation, designs, software specifications, and user interfaces created specifically for Client shall constitute deliverables under the applicable SOW.
-                  </p>
-
-                  {/* Highlighted Clause 1: IP Assignment */}
-                  <div
-                    onClick={() => {
-                      setSelectedClauseId('clause-1');
-                      setMobileTab('details');
-                    }}
-                    className={`p-3.5 rounded-lg border transition-all cursor-pointer ${selectedClauseId === 'clause-1'
-                        ? 'bg-[#FCE4DF] border-[#F7C6BE] ring-2 ring-[#A83224]'
-                        : 'bg-[#FCE4DF]/40 border-[#F7C6BE]/60 hover:bg-[#FCE4DF]/70'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#A83224] mb-1">
-                      <span>SECTION 6.2 • WORK FOR HIRE ASSIGNMENT</span>
-                      <span>HIGH RISK FLAGGED</span>
+              {/* Dynamic Page Content from document clauses */}
+              {(() => {
+                const pageClauses = document.clauses.filter((c) => c.pageNumber === currentPage);
+                if (pageClauses.length > 0) {
+                  return (
+                    <div className="space-y-6">
+                      <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider">
+                        FLAGGED CLAUSES ON PAGE {currentPage} ({pageClauses.length})
+                      </div>
+                      {pageClauses.map((clause) => {
+                        const isSelected = selectedClauseId === clause.id;
+                        return (
+                          <div
+                            key={clause.id}
+                            onClick={() => {
+                              setSelectedClauseId(clause.id);
+                              setMobileTab('details');
+                            }}
+                            className={`p-4 rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? clause.severity === 'high'
+                                  ? 'bg-[#FCE4DF] border-[#F7C6BE] ring-2 ring-[#A83224]'
+                                  : clause.severity === 'medium'
+                                  ? 'bg-[#FFF0D8] border-[#F5DEC2] ring-2 ring-[#92530C]'
+                                  : 'bg-[#E1EFE4] border-[#C6DFC9] ring-2 ring-[#286344]'
+                                : clause.severity === 'high'
+                                ? 'bg-[#FCE4DF]/40 border-[#F7C6BE]/60 hover:bg-[#FCE4DF]/70'
+                                : clause.severity === 'medium'
+                                ? 'bg-[#FFF0D8]/40 border-[#F5DEC2]/60 hover:bg-[#FFF0D8]/70'
+                                : 'bg-[#E1EFE4]/40 border-[#C6DFC9]/60 hover:bg-[#E1EFE4]/70'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between text-[10px] font-sans font-semibold mb-1">
+                              <span className="uppercase">{clause.section} • {clause.title}</span>
+                              <span className={
+                                clause.severity === 'high' ? 'text-[#A83224]' :
+                                clause.severity === 'medium' ? 'text-[#92530C]' : 'text-[#286344]'
+                              }>
+                                {clause.severity.toUpperCase()} RISK
+                              </span>
+                            </div>
+                            <p className="italic font-medium leading-relaxed">
+                              "{clause.originalText}"
+                            </p>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <p className="italic">
-                      "Contractor hereby irrevocably assigns, transfers, and conveys to Client all right, title, and interest worldwide in and to all Work Product, including all patents, copyrights, trade secrets, moral rights, and background technologies or tools utilized or incorporated in the deliverables, without reservation or additional royalty."
+                  );
+                }
+
+                return (
+                  <div className="space-y-5 py-8 text-center text-[#716B63]">
+                    <div className="w-10 h-10 rounded-full bg-[#F0ECE4] text-[#1D1B18] flex items-center justify-center mx-auto mb-2">
+                      <FileText className="w-5 h-5 text-[#716B63]" />
+                    </div>
+                    <h3 className="font-serif text-lg text-[#1D1B18] font-normal">Page {currentPage}</h3>
+                    <p className="text-xs max-w-md mx-auto leading-relaxed">
+                      {document.clauses.length > 0
+                        ? `No high or medium exposure clauses flagged on page ${currentPage}. Review flagged sections using the clause list on the left.`
+                        : "No risk clauses flagged in this contract."}
                     </p>
+                    {selectedClause && (
+                      <div className="mt-4 p-4 rounded-xl bg-[#F7F4EE] border border-[#E6E0D6] text-left">
+                        <div className="text-[10px] font-semibold text-[#979087] uppercase tracking-wider mb-1">
+                          Active Selection: {selectedClause.section} (Page {selectedClause.pageNumber})
+                        </div>
+                        <div className="font-serif italic text-xs text-[#1D1B18] mb-2">
+                          "{selectedClause.originalText}"
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => setCurrentPage(selectedClause.pageNumber)}>
+                          Jump to Page {selectedClause.pageNumber} →
+                        </Button>
+                      </div>
+                    )}
                   </div>
-
-                  <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider pt-2">
-                    SECTION 4: FEES, INVOICES & PAYMENT TERMS
-                  </div>
-
-                  {/* Highlighted Clause 2: Net 90 */}
-                  <div
-                    onClick={() => {
-                      setSelectedClauseId('clause-2');
-                      setMobileTab('details');
-                    }}
-                    className={`p-3.5 rounded-lg border transition-all cursor-pointer ${selectedClauseId === 'clause-2'
-                        ? 'bg-[#FFF0D8] border-[#F5DEC2] ring-2 ring-[#92530C]'
-                        : 'bg-[#FFF0D8]/40 border-[#F5DEC2]/60 hover:bg-[#FFF0D8]/70'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#92530C] mb-1">
-                      <span>SECTION 4.3 • PAYMENT SCHEDULE</span>
-                      <span>MEDIUM RISK FLAGGED</span>
-                    </div>
-                    <p className="italic">
-                      "Client shall remit payment for undisputed invoices within ninety (90) calendar days following Client's receipt and formal written acceptance of Contractor's submitted milestone. Client reserves the right to withhold any disputed portion or entire milestone disbursements without interest or penalty pending internal audit."
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {currentPage === 3 && (
-                <div className="space-y-6">
-                  <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider">
-                    SECTION 8: TERM AND TERMINATION
-                  </div>
-
-                  {/* Highlighted Clause 4: Immediate termination */}
-                  <div
-                    onClick={() => {
-                      setSelectedClauseId('clause-4');
-                      setMobileTab('details');
-                    }}
-                    className={`p-3.5 rounded-lg border transition-all cursor-pointer ${selectedClauseId === 'clause-4'
-                        ? 'bg-[#FFF0D8] border-[#F5DEC2] ring-2 ring-[#92530C]'
-                        : 'bg-[#FFF0D8]/40 border-[#F5DEC2]/60 hover:bg-[#FFF0D8]/70'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#92530C] mb-1">
-                      <span>SECTION 8.1 • TERMINATION FOR CONVENIENCE</span>
-                      <span>MEDIUM RISK FLAGGED</span>
-                    </div>
-                    <p className="italic">
-                      "Client may terminate this Agreement or any Statement of Work at any time, for any reason or no reason, immediately upon written notice, without further obligation to Contractor other than payment for deliverables formally approved prior to notice."
-                    </p>
-                  </div>
-
-                  <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider pt-2">
-                    SECTION 9: INDEMNIFICATION AND LIABILITY
-                  </div>
-
-                  {/* Highlighted Clause 3: Unlimited Indemnification */}
-                  <div
-                    onClick={() => {
-                      setSelectedClauseId('clause-3');
-                      setMobileTab('details');
-                    }}
-                    className={`p-4 rounded-lg border transition-all cursor-pointer ${selectedClauseId === 'clause-3'
-                        ? 'bg-[#FCE4DF] border-[#F7C6BE] ring-2 ring-[#A83224]'
-                        : 'bg-[#FCE4DF]/40 border-[#F7C6BE]/60 hover:bg-[#FCE4DF]/70'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#A83224] mb-1">
-                      <span>SECTION 9.1 • UNILATERAL INDEMNIFICATION</span>
-                      <span>CRITICAL HIGH RISK</span>
-                    </div>
-                    <p className="italic font-medium">
-                      "Contractor shall defend, indemnify, and hold harmless Client, its affiliates, directors, officers, employees, and agents from and against any and all claims, liabilities, losses, damages, costs, and expenses (including attorney's fees and consequential or punitive damages) arising out of or related to Contractor's performance, deliverables, or breach of any covenant herein."
-                    </p>
-                  </div>
-
-                  <p className="text-justify text-[#716B63]">
-                    9.2 <strong className="text-[#1D1B18]">Disclaimer.</strong> EXCEPT AS EXPRESSLY SET FORTH HEREIN, NEITHER PARTY MAKES ANY WARRANTIES, EXPRESS OR IMPLIED, WITH RESPECT TO THE DELIVERABLES.
-                  </p>
-                </div>
-              )}
-
-              {currentPage === 4 && (
-                <div className="space-y-6">
-                  <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider">
-                    SECTION 11: RESTRICTIVE COVENANTS
-                  </div>
-
-                  {/* Highlighted Clause 5: Non-compete */}
-                  <div
-                    onClick={() => {
-                      setSelectedClauseId('clause-5');
-                      setMobileTab('details');
-                    }}
-                    className={`p-3.5 rounded-lg border transition-all cursor-pointer ${selectedClauseId === 'clause-5'
-                        ? 'bg-[#FFF0D8] border-[#F5DEC2] ring-2 ring-[#92530C]'
-                        : 'bg-[#FFF0D8]/40 border-[#F5DEC2]/60 hover:bg-[#FFF0D8]/70'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#92530C] mb-1">
-                      <span>SECTION 11.4 • NON-COMPETE RESTRICTION</span>
-                      <span>MEDIUM RISK FLAGGED</span>
-                    </div>
-                    <p className="italic">
-                      "During the term and for a period of twenty-four (24) months following termination, Contractor shall not directly or indirectly provide consulting, engineering, or design services to any entity operating within the financial technology, banking, or payments industry."
-                    </p>
-                  </div>
-
-                  <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider pt-2">
-                    SECTION 14: GOVERNING LAW AND VENUE
-                  </div>
-
-                  {/* Highlighted Clause 6: Governing law */}
-                  <div
-                    onClick={() => {
-                      setSelectedClauseId('clause-6');
-                      setMobileTab('details');
-                    }}
-                    className={`p-3.5 rounded-lg border transition-all cursor-pointer ${selectedClauseId === 'clause-6'
-                        ? 'bg-[#E1EFE4] border-[#C6DFC9] ring-2 ring-[#286344]'
-                        : 'bg-[#E1EFE4]/40 border-[#C6DFC9]/60 hover:bg-[#E1EFE4]/70'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between text-[10px] font-sans font-semibold text-[#286344] mb-1">
-                      <span>SECTION 14.1 • JURISDICTION & VENUE</span>
-                      <span>LOW RISK FLAGGED</span>
-                    </div>
-                    <p className="italic">
-                      "This Agreement shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to conflict of laws principles. The parties irrevocably consent to exclusive jurisdiction in New Castle County, Delaware."
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {currentPage === 1 && (
-                <div className="space-y-5 text-center py-10">
-                  <h2 className="text-xl font-normal text-[#1D1B18]">TABLE OF CONTENTS & PREAMBLE</h2>
-                  <p className="text-xs text-[#716B63] max-w-md mx-auto">
-                    This Master Services Agreement ("Agreement") is entered into as of October 21, 2026 by and between Apex Financial Technologies Inc. and Independent Contractor.
-                  </p>
-                  <Button size="sm" variant="outline" onClick={() => setCurrentPage(2)}>
-                    Turn to Page 2 (Flagged Clauses) →
-                  </Button>
-                </div>
-              )}
-
-              {currentPage === 5 && (
-                <div className="space-y-6 pt-6">
-                  <div className="font-sans font-semibold text-xs text-[#1D1B18] uppercase tracking-wider">
-                    SIGNATURE EXECUTION BLOCK
-                  </div>
-                  <div className="grid grid-cols-2 gap-8 pt-8 font-sans text-xs">
-                    <div className="border-t border-[#1D1B18] pt-2">
-                      <div className="font-medium text-[#1D1B18]">APEX FINANCIAL TECHNOLOGIES INC.</div>
-                      <div className="text-[11px] text-[#716B63]">By: Authorized Officer</div>
-                    </div>
-                    <div className="border-t border-[#1D1B18] pt-2">
-                      <div className="font-medium text-[#1D1B18]">ALEX RIVERA CONSULTING</div>
-                      <div className="text-[11px] text-[#716B63]">By: Independent Professional</div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Sheet Footer */}
               <div className="pt-8 border-t border-[#E6E0D6]/70 flex items-center justify-between text-[11px] font-sans text-[#979087]">
-                <span>Contract ID: AIDA-MSA-2026-X8</span>
+                <span>Contract ID: {document.id}</span>
                 <span>Page {currentPage} of {document.pageCount}</span>
               </div>
             </div>

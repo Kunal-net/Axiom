@@ -96,3 +96,21 @@ def root():
         "docs": "/docs",
         "api": settings.API_V1_PREFIX,
     }
+
+
+@app.get("/health", tags=["Health"], summary="Root health probe alias")
+def root_health():
+    from backend.app.api.v1.routes.health import health_check
+    from backend.app.db.session import SessionLocal
+    db = SessionLocal()
+    try:
+        return health_check(db=db)
+    finally:
+        db.close()
+
+
+@app.api_route("/openapi.json", methods=["GET", "HEAD"], include_in_schema=False)
+def openapi_alias():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/api/v1/openapi.json")
+

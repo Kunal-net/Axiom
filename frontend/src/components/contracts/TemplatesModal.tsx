@@ -29,7 +29,7 @@ export const TemplatesModal: React.FC<TemplatesModalProps> = ({
               <Sparkles className="w-4 h-4 text-[#E1EFE4]" />
             </div>
             <div>
-              <h2 className="font-serif text-xl text-[#1D1B18] font-normal tracking-tight">
+              <h2 className="font-display text-xl text-[#1D1B18] font-normal tracking-tight">
                 Lawyer-Vetted Contract Templates
               </h2>
               <p className="text-xs text-[#716B63]">

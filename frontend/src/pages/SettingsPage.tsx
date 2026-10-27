@@ -15,9 +15,11 @@ import { UserProfile } from '../types/contract';
 
 interface SettingsPageProps {
   onNavigate: (route: string) => void;
+  onProfileUpdated?: (updated: UserProfile) => void;
+  onLogout?: () => void;
 }
 
-export const SettingsPage: React.FC<SettingsPageProps> = ({ onNavigate: _onNavigate }) => {
+export const SettingsPage: React.FC<SettingsPageProps> = ({ onNavigate: _onNavigate, onProfileUpdated, onLogout }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [savedFeedback, setSavedFeedback] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'analysis' | 'privacy' | 'notifications'>('profile');
@@ -29,7 +31,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onNavigate: _onNavig
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
-    await contractService.updateUserProfile(profile);
+    const updated = await contractService.updateUserProfile(profile);
+    setProfile(updated);
+    if (onProfileUpdated) {
+      onProfileUpdated(updated);
+    }
     setSavedFeedback(true);
     setTimeout(() => setSavedFeedback(false), 2500);
   };
@@ -42,7 +48,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onNavigate: _onNavig
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#E6E0D6]">
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-[#979087]">Workspace Configuration</span>
-          <h1 className="font-serif text-3xl sm:text-4xl text-[#1D1B18] mt-1 font-normal tracking-tight">
+          <h1 className="font-display text-3xl sm:text-4xl text-[#1D1B18] mt-1 font-normal tracking-tight">
             Settings & Preferences
           </h1>
           <p className="text-sm text-[#716B63] mt-1">
@@ -138,6 +144,26 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onNavigate: _onNavig
                       className="w-full bg-[#F7F4EE] border border-[#E6E0D6] rounded-xl px-3.5 py-2 text-xs text-[#1D1B18] focus:outline-none focus:border-[#1C1B19] focus:bg-[#FFFDFA]"
                     />
                   </div>
+                </div>
+
+                {/* Account Security & Session */}
+                <div className="pt-6 border-t border-[#E6E0D6] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-xs font-semibold text-[#1D1B18]">Account Security & Session</h4>
+                    <p className="text-[11px] text-[#716B63] mt-0.5">
+                      Signed in as <span className="font-medium text-[#1D1B18]">{profile.email}</span>. Protected by 256-bit Argon2id encryption and HttpOnly cookie security.
+                    </p>
+                  </div>
+                  {onLogout && (
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      onClick={onLogout}
+                    >
+                      Sign Out of Axiom
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -252,21 +278,25 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onNavigate: _onNavig
                   </select>
                 </div>
 
-                {/* API Key Box */}
-                <div className="pt-4 border-t border-[#E6E0D6] space-y-2">
-                  <label className="text-xs font-medium text-[#1D1B18] flex items-center gap-1.5">
-                    <Key className="w-3.5 h-3.5" />
-                    <span>Custom Backend API Key (Optional)</span>
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="sk-live-axiom-..."
-                    defaultValue="••••••••••••••••••••••••••••••••"
-                    className="w-full bg-[#F7F4EE] border border-[#E6E0D6] rounded-xl px-3.5 py-2 text-xs text-[#1D1B18] font-mono focus:outline-none"
-                  />
-                  <p className="text-[11px] text-[#979087]">
-                    Optionally route analysis through your own private enterprise Azure OpenAI or Google Cloud Vertex AI endpoint.
-                  </p>
+                {/* AI Inference Architecture Card */}
+                <div className="pt-4 border-t border-[#E6E0D6] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-[#1D1B18] flex items-center gap-1.5">
+                      <Key className="w-3.5 h-3.5" />
+                      <span>AI Inference Pipeline</span>
+                    </label>
+                    <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full font-medium bg-[#E1EFE4] text-[#286344] border border-[#C6DFC9]">
+                      Server Managed
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-[#F7F4EE] border border-[#E6E0D6] text-xs text-[#716B63] space-y-1.5 leading-relaxed">
+                    <p className="text-[#1D1B18] font-medium">
+                      Zero Client-Side Credentials Policy
+                    </p>
+                    <p>
+                      Axiom enforces strict credential isolation: all contract intelligence operations (Groq LPU / Llama-3.3-70B and deterministic rule benchmarks) run via server-side configuration (<code className="font-mono text-[11px] bg-[#E6E0D6]/60 px-1 py-0.5 rounded">GROQ_API_KEY</code>). API keys are never stored in browser storage or exposed in client bundles.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

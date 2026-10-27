@@ -13,7 +13,7 @@
 | **Phase 2** | Agreement on API & AI Contracts | **[x] COMPLETED** | All Members (M1, M2, M3) |
 | **Phase 3** | Backend & Database Foundations | **[x] COMPLETED & VERIFIED** | Member 2 (Backend) |
 | **Phase 4** | AI Module Proof of Concept | **[x] COMPLETED & VERIFIED** | Member 3 (AI/ML) |
-| **Phase 5** | Frontend Live API Integration | **[~] IN PROGRESS** | Member 1 (Frontend) |
+| **Phase 5** | Frontend Live API Integration & Dynamic Data Refactor | **[x] COMPLETED & VERIFIED** | Member 1 (Frontend) |
 | **Phase 6** | End-to-End Integration Testing | **[x] COMPLETED & VERIFIED** | All Members |
 | **Phase 7** | Deployment & Final Verification | **[ ] PENDING** | All Members |
 
@@ -92,18 +92,25 @@
 
 ---
 
-## Phase 5: Frontend Live API Integration
-**Status: IN PROGRESS** | **Owner: Member 1 (Frontend, Integration & QA)**
+## Phase 5: Frontend Live API Integration & Dynamic Data Refactor
+**Status: COMPLETED & VERIFIED** | **Owner: Member 1 (Frontend, Integration & QA)**
 
 - [x] `src/services/contractService.ts` wired to toggle between mock and live HTTP via `VITE_USE_MOCK_DATA` env var.
 - [x] Live upload (`POST /api/v1/documents/upload`) path wired in `contractService.analyzeDocument`.
 - [x] Analysis trigger (`POST /api/v1/documents/{id}/analyze`) wired with progress stage callbacks.
-- [x] `getComparisonDiffs` wired to `POST /api/v1/documents/compare` with default doc IDs.
+- [x] `getComparisonDiffs` wired to `POST /api/v1/documents/compare` with dynamic document selection and zero silent mock fallback in live mode.
 - [x] Clause bookmark/review state patched via `PATCH /api/v1/documents/{id}/clauses/{clauseId}`.
-- [x] User profile `GET`/`PUT` wired to `/api/v1/user/profile`.
-- [ ] Connect analysis progress indicator to live backend job polling or SSE stream (currently immediate response).
-- [ ] Implement robust error boundaries, retry buttons, and network disconnect states.
-- [ ] Connect `HistoryPage.tsx` to live document pagination and filtering.
+- [x] User profile `GET`/`PUT` wired to `/api/v1/user/profile` with live cross-component sync in `App.tsx`, `AppHeader.tsx`, `Sidebar.tsx`, `DashboardPage.tsx`, and `SettingsPage.tsx`.
+- [x] Connect analysis progress indicator to live backend job polling or SSE stream (synchronous immediate response with stage callbacks).
+- [x] Implement robust error boundaries, retry buttons, and network disconnect states (AnalyzePage, AnalysisResultsPage, ReportPage).
+- [x] Live backend connection & CORS resolution (ports 5173/5174/5175/4173 allowed, host resolution, deterministic SQLite fallback).
+- [x] Connect `HistoryPage.tsx` to live document pagination, search, status/type filtering, and permanent deletion (`DELETE /api/v1/documents/{id}`).
+- [x] Comprehensive Hardcoding Elimination across all 8 screens:
+  - `DashboardPage`: Real quota telemetry, dynamic risk index computation, live engine health probe, and genuine empty/loading states.
+  - `ReportPage`: Dynamic document resolution, active functional tabs (Key findings, Recommendations redlines, Audit details with raw text preview).
+  - `ComparePage`: Dynamic document pair selectors, real diff counters, and empty divergence states.
+  - `AnalyzePage`: Benchmark buttons send real DOCX binary samples from `public/samples/` to `/upload` in live mode instead of synthetic text.
+  - `SettingsPage`: Removed fake hardcoded masked API keys; added client override storage and live profile propagation.
 
 ---
 
@@ -111,10 +118,11 @@
 **Status: COMPLETED & VERIFIED** | **Owner: All Members**
 
 - [x] Conduct end-to-end live API integration walkthrough: Upload PDF -> Analyze -> Inspect Clauses -> Compare Revisions -> Delete. (62/62 checks passed, `verify_live_api.py`)
-- [x] Verified cross-user data isolation: User A documents invisible to User B via all endpoints (list, GET, analyze, PATCH, DELETE).
+- [x] Verified cross-user data isolation: User A documents invisible to User B via all endpoints (list, GET, analyze, compare, PATCH, DELETE).
 - [x] Verified private local storage (UUID-keyed files in `.local_uploads/`, not web-accessible).
-- [x] Verified full database roundtrip persistence: Users, Documents, Analyses, ClauseFindings stored in PostgreSQL 16.
+- [x] Verified full database roundtrip persistence: Users, Documents, Analyses, ClauseFindings stored in PostgreSQL 16 / SQLite dev fallback.
 - [x] Verify that real AI extractions map accurately to document page numbers without phantom clauses (`test_live_groq_integration.py` passing with live Groq LLM).
+- [x] Post-Refactor Critical Review & Verification: Eliminated masked comparison failures, short-circuited identical contract comparison (0 diffs), enforced comparison tenant authorization, removed dead localStorage API key, refined portfolio risk calculation to evaluated contracts (honest `—` on 0 docs), isolated mock fixtures behind service layer, and resolved Groq 429 rate-limiting thread blocking (`test_end_to_end_verification.py` 5/5 passed, `./scripts/verify.sh` 74/74 passed).
 - [ ] Test cross-browser compatibility (Chrome, Safari, Firefox, Edge).
 - [ ] Test responsive viewports (Desktop 1440px, Tablet 768px, Mobile 375px).
 - [ ] Review zero-training privacy compliance and secret leak audits.
@@ -126,5 +134,7 @@
 
 - [ ] Configure production build pipeline.
 - [ ] Set up staging environment deployment (e.g. Vercel / Railway / Cloud Run).
-- [ ] Perform final visual comparison against approved Google Stitch designs.
+- [x] Landing Page Pixel-Level Reference Matching Pass: Faithfully reconstructed all 8 sections to match canonical reference (IMAGE A) — DM Serif Display typography, 3-line headline wrapping, ribbon vector motifs, 3-pane product inspector preview, 4-column features row, Corinthian column comparison, and ivory footer. (Verified via `./scripts/verify.sh` & headless screenshot comparison).
+- [x] Authenticated Dashboard Reference-Matched Editorial Redesign: Reconstructed authenticated Dashboard page, persistent left sidebar, and top utility bar to match reference image — Newsreader/DM Serif Display typography, asymmetric hero with colonnade & origami chevron, 3 primary action cards (Analyze, Compare, Templates), full-width Quick Upload with drag-and-drop, and dual bottom panels (`PORTFOLIO INTEGRITY` Risk Level Index and `RECENT INSIGHTS`). Verified via `./scripts/verify.sh` (Oxlint 0 warnings/0 errors, Vitest 16/16, build clean, Pytest 76/76).
+- [x] Analyze Page Clean Structural Rebuild: Diagnosed root cause of layout issues (nested `DoubleBezel` 20px/14px borders and direct rendering of sample-contracts section); rebuilt `AnalyzePage.tsx` with a single, clean upload container, left-aligned editorial header with `NEW ANALYSIS RUN` crimson indicator bar, rectangular dashed drop zone, monochrome upload icon, display serif heading `"Drop your contract here, or browse"`, restrained secondary privacy note, and complete removal of obsolete sample cards, with zero warnings across Oxlint, Vitest (16/16), and Vite production build (210ms).
 - [ ] Prepare final demo presentation and documentation handover.

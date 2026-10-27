@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { 
-  LayoutDashboard, 
+  LayoutGrid, 
   FileText, 
   GitCompare, 
   Clock, 
   Settings, 
-  ChevronLeft, 
   ChevronRight, 
-  Globe,
-  FileSearch,
-  FileCheck2,
-  ChevronsUpDown,
-  BookOpen
+  Globe, 
+  FileSearch, 
+  FileCheck2, 
+  BookOpen, 
+  LogOut 
 } from 'lucide-react';
 import clsx from 'clsx';
 import { UserProfile } from '../../types/contract';
@@ -21,60 +20,73 @@ interface SidebarProps {
   onNavigate: (route: string) => void;
   onOpenTemplates?: () => void;
   userProfile?: UserProfile;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   currentRoute,
   onNavigate,
   onOpenTemplates,
-  userProfile
+  userProfile,
+  onLogout,
 }) => {
   const [collapsed, setCollapsed] = useState(false);
 
+  // Exact navigation item order specified in reference
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
     { id: 'analyze', label: 'Analyze', icon: FileText },
     { id: 'compare', label: 'Compare', icon: GitCompare },
-    { id: 'history', label: 'History', icon: Clock },
     { id: 'templates', label: 'Templates', icon: BookOpen, action: 'templates' },
+    { id: 'history', label: 'History', icon: Clock },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  const userInitial = userProfile?.name?.trim()
+    ? userProfile.name.trim().charAt(0).toUpperCase()
+    : 'K';
+
+  const userRole = userProfile?.role?.trim()
+    ? userProfile.role.trim().charAt(0).toUpperCase() + userProfile.role.trim().slice(1)
+    : 'Student';
 
   return (
     <aside
       className={clsx(
-        'bg-[#FFFDFA] border-r border-[#E6E0D6] flex flex-col justify-between transition-all duration-300 select-none z-30 shrink-0 h-screen sticky top-0 shadow-[0_1px_8px_rgba(0,0,0,0.04)]',
-        collapsed ? 'w-20' : 'w-64'
+        'bg-[#F7F4EE] border-r border-[#E6E0D6] flex flex-col justify-between transition-all duration-300 select-none z-30 shrink-0 h-screen sticky top-0 relative',
+        collapsed ? 'w-20' : 'w-60 lg:w-64'
       )}
     >
-      {/* Top Header & Logo */}
-      <div className="flex flex-col gap-6 pt-5">
-        <div className="flex items-center justify-between px-4">
+      {/* Top Header & Brand Wordmark */}
+      <div className="flex flex-col pt-6">
+        <div className="flex items-center justify-between px-5 pb-5">
           <div 
             onClick={() => onNavigate('dashboard')} 
-            className="flex items-center gap-3 cursor-pointer overflow-hidden group"
+            className="flex flex-col cursor-pointer overflow-hidden group select-none"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#1C1B19] text-[#FFFFFF] flex items-center justify-center font-serif text-lg italic font-medium shrink-0 shadow-sm transition-transform group-hover:scale-105">
-              A
-            </div>
-            {!collapsed && (
-              <div className="flex flex-col">
-                <span className="font-sans text-[16px] font-medium tracking-tight text-[#1D1B18] leading-tight">
-                  Axiom
+            {!collapsed ? (
+              <>
+                <span className="font-display font-bold text-[22px] tracking-[0.14em] text-[#111110] leading-none">
+                  AXIOM
                 </span>
-                <span className="text-[10px] text-[#716B63] uppercase tracking-widest font-medium">
-                  Intelligence
+                <span className="text-[9px] font-sans font-bold tracking-[0.26em] text-[#8A857D] uppercase mt-1">
+                  INTELLIGENCE
                 </span>
-              </div>
+              </>
+            ) : (
+              <span className="font-display font-bold text-xl text-[#111110] leading-none">
+                A
+              </span>
             )}
           </div>
 
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-lg text-[#979087] hover:text-[#1D1B18] hover:bg-[#F0ECE4] transition-colors"
+            className="p-1 rounded text-[#8A857D] hover:text-[#111110] hover:bg-[#EAE5DC]/60 transition-colors cursor-pointer"
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            <ChevronRight className={clsx('w-4 h-4 transition-transform', collapsed ? 'rotate-0' : 'opacity-70')} />
           </button>
         </div>
 
@@ -94,14 +106,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }
                 }}
                 className={clsx(
-                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-left font-medium',
+                  'w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-md text-xs sm:text-[13px] font-medium transition-colors text-left cursor-pointer',
                   isActive
-                    ? 'bg-[#F0ECE4] text-[#1D1B18] shadow-[0_1px_4px_rgba(0,0,0,0.03)]'
-                    : 'text-[#716B63] hover:bg-[#EAE5DC] hover:text-[#1D1B18]'
+                    ? 'bg-[#111110] text-[#FFFFFF] shadow-xs'
+                    : 'text-[#1D1B18] hover:bg-[#EAE5DC]/60 hover:text-[#111110]'
                 )}
                 title={collapsed ? item.label : undefined}
               >
-                <Icon className={clsx('w-5 h-5 shrink-0', isActive ? 'text-[#1D1B18]' : 'text-[#716B63]')} />
+                <Icon className={clsx('w-4 h-4 shrink-0', isActive ? 'text-[#FFFFFF]' : 'text-[#111110]')} />
                 {!collapsed && (
                   <span className="truncate">{item.label}</span>
                 )}
@@ -112,16 +124,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Contextual links for active results or report */}
           {(currentRoute === 'results' || currentRoute === 'report') && (
             <div className="pt-2 mt-2 border-t border-[#E6E0D6]/60">
-              <span className={clsx('text-[10px] font-semibold text-[#979087] uppercase tracking-wider px-3 mb-1 block', collapsed && 'hidden')}>
+              <span className={clsx('text-[10px] font-semibold text-[#8A857D] uppercase tracking-wider px-3 mb-1 block', collapsed && 'hidden')}>
                 Active Document
               </span>
               <button
                 onClick={() => onNavigate('results')}
                 className={clsx(
-                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left',
+                  'w-full flex items-center gap-3 px-3.5 py-2 rounded-md text-xs font-medium transition-colors text-left cursor-pointer',
                   currentRoute === 'results'
-                    ? 'bg-[#F0ECE4] text-[#1D1B18] font-medium'
-                    : 'text-[#716B63] hover:bg-[#EAE5DC] hover:text-[#1D1B18]'
+                    ? 'bg-[#111110] text-[#FFFFFF]'
+                    : 'text-[#716B63] hover:bg-[#EAE5DC]/60 hover:text-[#1D1B18]'
                 )}
                 title="Analysis Results"
               >
@@ -131,10 +143,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 onClick={() => onNavigate('report')}
                 className={clsx(
-                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left',
+                  'w-full flex items-center gap-3 px-3.5 py-2 rounded-md text-xs font-medium transition-colors text-left cursor-pointer',
                   currentRoute === 'report'
-                    ? 'bg-[#F0ECE4] text-[#1D1B18] font-medium'
-                    : 'text-[#716B63] hover:bg-[#EAE5DC] hover:text-[#1D1B18]'
+                    ? 'bg-[#111110] text-[#FFFFFF]'
+                    : 'text-[#716B63] hover:bg-[#EAE5DC]/60 hover:text-[#1D1B18]'
                 )}
                 title="Analysis Report"
               >
@@ -146,43 +158,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Bottom Area: Landing Page Switcher & User Profile Pill */}
-      <div className="p-3 border-t border-[#E6E0D6]/70 space-y-2">
+      {/* Middle/Lower Section: Architectural Corinthian Pillar Composition */}
+      {!collapsed && (
+        <div className="relative w-full flex-1 min-h-[240px] max-h-[460px] overflow-hidden my-auto select-none pointer-events-none flex items-end justify-start bg-[var(--color-axiom-bg,#F7F4EE)]">
+          {/* Subtle architectural drafting grid lines */}
+          <div className="absolute inset-0 opacity-25 bg-[linear-gradient(to_right,#E6E0D6_1px,transparent_1px),linear-gradient(to_bottom,#E6E0D6_1px,transparent_1px)] bg-[size:14px_14px]" />
+
+          {/* Classical Corinthian pillar with diagonal roofline and complete pointed red graphic */}
+          <img
+            src="/images/sidebar-pillar.png"
+            srcSet="/images/sidebar-pillar.png 1x, /images/sidebar-pillar@2x.png 2x"
+            alt="Classical Corinthian column architectural composition with red brand shard"
+            className="w-full h-full object-contain object-left-bottom mix-blend-multiply relative z-10"
+          />
+        </div>
+      )}
+
+      {/* Bottom Area: Landing Page Switcher, Logout & User Profile */}
+      <div className="p-3 space-y-1 select-none z-10">
         <button
           onClick={() => onNavigate('landing')}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#716B63] hover:text-[#1D1B18] hover:bg-[#F0ECE4] transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium text-[#1D1B18] hover:bg-[#EAE5DC]/60 transition-colors cursor-pointer"
           title="Back to Landing Page"
         >
-          <Globe className="w-4 h-4 shrink-0 text-[#979087]" />
+          <Globe className="w-4 h-4 shrink-0 text-[#8A857D]" />
           {!collapsed && <span>Public Landing</span>}
         </button>
 
-        {/* User Profile Pill matching Stitch */}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-xs font-medium text-[#D92228] hover:bg-[#FCE4DF]/60 transition-colors cursor-pointer"
+            title="Sign Out of Axiom"
+          >
+            <LogOut className="w-4 h-4 shrink-0 text-[#D92228]" />
+            {!collapsed && <span>Sign Out</span>}
+          </button>
+        )}
+
+        <div className="border-t border-[#E6E0D6] my-2" />
+
+        {/* User Profile Pill */}
         <div 
           onClick={() => onNavigate('settings')}
           className={clsx(
-            'flex items-center justify-between p-2.5 rounded-xl bg-[#F0ECE4]/70 hover:bg-[#F0ECE4] transition-colors cursor-pointer',
+            'flex items-center justify-between p-2 rounded-md hover:bg-[#EAE5DC]/60 transition-colors cursor-pointer',
             collapsed ? 'justify-center p-2' : ''
           )}
           title="Account Settings"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-[#1C1B19] flex items-center justify-center shrink-0 shadow-sm text-white font-medium text-xs">
-              {userProfile?.name?.charAt(0) || 'K'}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-[#111110] flex items-center justify-center shrink-0 shadow-xs text-white font-medium text-xs">
+              {userInitial}
             </div>
             {!collapsed && (
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs font-medium text-[#1D1B18] truncate">
-                  {userProfile?.name || 'Kunal'}
+              <div className="flex flex-col min-w-0 text-left">
+                <span className="text-xs font-medium text-[#111110] truncate">
+                  {userProfile?.name || 'Kunal Suryanshi'}
                 </span>
-                <span className="text-[11px] text-[#716B63] truncate">
-                  Free plan
+                <span className="text-[11px] text-[#8A857D] truncate">
+                  {userRole}
                 </span>
               </div>
             )}
           </div>
           {!collapsed && (
-            <ChevronsUpDown className="w-4 h-4 text-[#716B63] shrink-0" />
+            <ChevronRight className="w-3.5 h-3.5 text-[#8A857D] shrink-0" />
           )}
         </div>
       </div>

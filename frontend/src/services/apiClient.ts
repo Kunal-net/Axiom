@@ -26,11 +26,29 @@ export interface RequestOptions extends RequestInit {
  * Axiom REST API Client
  * Lightweight fetch wrapper with base URL prepending, timeouts, and standardized error parsing.
  */
-class ApiClient {
+export class ApiClient {
   private readonly baseUrl: string;
+  private token: string | null = null;
+  private unauthorizedListeners: Array<() => void> = [];
 
-  constructor() {
-    this.baseUrl = `${appConfig.apiBaseUrl}/api/v1`;
+  constructor(customBaseUrl?: string) {
+    const raw = customBaseUrl || appConfig.apiBaseUrl;
+    this.baseUrl = `${raw.replace(/\/api\/v1\/?$/, '')}/api/v1`;
+  }
+
+  public setToken(token: string | null): void {
+    this.token = token;
+  }
+
+  public getToken(): string | null {
+    return this.token;
+  }
+
+  public onUnauthorized(listener: () => void): () => void {
+    this.unauthorizedListeners.push(listener);
+    return () => {
+      this.unauthorizedListeners = this.unauthorizedListeners.filter((l) => l !== listener);
+    };
   }
 
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -39,12 +57,19 @@ class ApiClient {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+    const mergedHeaders: Record<string, string> = {
+      Accept: 'application/json',
+      ...(headers as Record<string, string>),
+    };
+
+    if (this.token && !mergedHeaders['Authorization']) {
+      mergedHeaders['Authorization'] = `Bearer ${this.token}`;
+    }
+
     const config: RequestInit = {
+      credentials: 'include',
       ...customConfig,
-      headers: {
-        Accept: 'application/json',
-        ...headers,
-      },
+      headers: mergedHeaders,
       signal: controller.signal,
     };
 
@@ -52,6 +77,16 @@ class ApiClient {
       const response = await fetch(`${this.baseUrl}${endpoint}`, config);
 
       if (!response.ok) {
+        if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
+          this.unauthorizedListeners.forEach((fn) => {
+            try {
+              fn();
+            } catch {
+              // Ignore subscriber errors
+            }
+          });
+        }
+
         let errorData: ApiErrorDetail;
         try {
           const body = await response.json();

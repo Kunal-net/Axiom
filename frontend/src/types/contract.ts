@@ -32,6 +32,9 @@ export interface ContractDocument {
   summary: string;
   clauses: ClauseFinding[];
   pageCount: number;
+  provider?: string;
+  modelName?: string;
+  extractedText?: string;
 }
 
 export interface DocumentDiff {
@@ -92,8 +95,51 @@ export interface AnalysisInitiateRequest {
   autoGenerateRedlines?: boolean;
 }
 
+export interface HealthCheckResponse {
+  status: string;
+  version?: string;
+  timestamp?: string;
+  database?: string;
+  ai?: {
+    status: string;
+    provider: string;
+    model: string;
+  };
+}
+
 export interface ApiErrorDetail {
   code: string;
   message: string;
   details?: Record<string, unknown>;
 }
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role?: string;
+  organization?: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface TokenResponse {
+  token: string;
+  tokenType: string;
+  user: AuthUser;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+  role?: string;
+  organization?: string;
+}
+

@@ -184,24 +184,29 @@ class ContractComparator:
             )
             counter += 1
 
+        if original_text.strip() and original_text.strip() == revised_text.strip():
+            return []
+
         # 5. Mutual Termination Notice & WIP Compensation
-        orig_has_convenience = "convenience" in lower_orig or "without cause" in lower_orig
-        diffs.append(
-            DocumentDiffSchema(
-                id=f"diff-{counter}",
-                clauseTitle="Bilateral Termination Notice & Work-in-Progress Payment",
-                section="Section 8.1 • Termination",
-                changeType="conflict",
-                severity="medium",
-                originalText="Client may terminate this Agreement at any time for convenience upon two (2) days notice without liability.",
-                revisedText="Either party may terminate for convenience upon thirty (30) days notice. Client shall compensate Contractor for all work completed up to termination.",
-                explanation="Resolved asymmetric cancellation terms into reciprocal 30-day notice with guaranteed payment for accrued hours.",
-                legalImpact="Eliminates immediate unpaid schedule cancellations.",
-                authorOriginal=original_title,
-                authorRevised=revised_title,
+        orig_has_convenience = "convenience" in lower_orig or "without cause" in lower_orig or "without notice" in lower_orig
+        rev_has_mutual = "either party" in lower_rev or "30 days" in lower_rev or "compensate" in lower_rev
+        if orig_has_convenience and rev_has_mutual:
+            diffs.append(
+                DocumentDiffSchema(
+                    id=f"diff-{counter}",
+                    clauseTitle="Bilateral Termination Notice & Work-in-Progress Payment",
+                    section="Section 8.1 • Termination",
+                    changeType="conflict",
+                    severity="medium",
+                    originalText="Client may terminate this Agreement at any time for convenience upon two (2) days notice without liability.",
+                    revisedText="Either party may terminate for convenience upon thirty (30) days notice. Client shall compensate Contractor for all work completed up to termination.",
+                    explanation="Resolved asymmetric cancellation terms into reciprocal 30-day notice with guaranteed payment for accrued hours.",
+                    legalImpact="Eliminates immediate unpaid schedule cancellations.",
+                    authorOriginal=original_title,
+                    authorRevised=revised_title,
+                )
             )
-        )
-        counter += 1
+            counter += 1
 
         return diffs
 

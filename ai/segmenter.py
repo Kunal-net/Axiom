@@ -24,7 +24,7 @@ class ContractSegmenter:
 
     PAGE_MARKER_REGEX = re.compile(r"--- PAGE (\d+) ---", re.IGNORECASE)
     SECTION_HEADER_REGEX = re.compile(
-        r"(?m)^(?:Section|Article|Clause|\§)\s+([0-9IVXLCDM]+(?:\.[0-9]+)*)\s*[:•\-–—]?\s*([^\n\r]{2,80})",
+        r"(?m)^[ \t]*(?:(?:Section|Article|Clause|\§)\s+)?([0-9IVXLCDM]+(?:\.[0-9]+)*)\s*[:.•\-–—]\s*([A-Za-z0-9 ,/&\'\"–—\-]{2,60}?)(?:[\.\n\r:]|$)",
         re.IGNORECASE,
     )
 
@@ -164,6 +164,39 @@ class ContractSegmenter:
                 return self.get_page_for_offset(text, idx)
 
         return fallback_page
+
+    def find_section_for_excerpt(self, text: str, excerpt: str) -> Optional[str]:
+        """Identifies the enclosing section number and title for a verbatim excerpt from text."""
+        if not text or not excerpt:
+            return None
+
+        # 1. If excerpt itself starts with a section header, extract it directly
+        m_head = self.SECTION_HEADER_REGEX.match(excerpt.strip())
+        if m_head:
+            sec_num = m_head.group(1).strip()
+            sec_title = m_head.group(2).strip()
+            return f"Section {sec_num} • {sec_title}"
+
+        clean_exc = excerpt.strip()
+        idx = text.lower().find(clean_exc.lower())
+        if idx == -1:
+            short_exc = clean_exc[:40].strip()
+            if len(short_exc) >= 15:
+                idx = text.lower().find(short_exc.lower())
+
+        if idx == -1:
+            return None
+
+        # Look at preceding text up to the start of the excerpt (+ small margin)
+        preceding = text[: idx + min(len(clean_exc), 60)]
+        matches = list(self.SECTION_HEADER_REGEX.finditer(preceding))
+        if matches:
+            last_m = matches[-1]
+            sec_num = last_m.group(1).strip()
+            sec_title = last_m.group(2).strip()
+            return f"Section {sec_num} • {sec_title}"
+
+        return None
 
     def segment_into_clauses(self, text: str) -> List[ContractSegment]:
         """Segments text into distinct clauses and sections with stable anchors."""

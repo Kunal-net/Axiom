@@ -3,7 +3,9 @@ import {
   Search,
   FileText,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { RiskBadge } from '../components/ui/RiskBadge';
@@ -20,10 +22,52 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'risk'>('date');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const pageSize = 5;
 
   useEffect(() => {
     contractService.getDocuments().then(setDocuments);
   }, []);
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleFilterTypeChange = (val: string) => {
+    setFilterType(val);
+    setCurrentPage(1);
+  };
+
+  const handleFilterStatusChange = (val: string) => {
+    setFilterStatus(val);
+    setCurrentPage(1);
+  };
+
+  const handleSortByChange = (val: 'date' | 'name' | 'risk') => {
+    setSortBy(val);
+    setCurrentPage(1);
+  };
+
+  const handleDeleteDocument = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
+    setDeletingId(id);
+    setDeleteError(null);
+    try {
+      const success = await contractService.deleteDocument(id);
+      if (success) {
+        setDocuments((prev) => prev.filter((d) => d.id !== id));
+      } else {
+        setDeleteError(`Failed to delete "${name}". The contract could not be deleted from the server.`);
+      }
+    } catch (err) {
+      setDeleteError(`Error deleting contract: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filteredDocs = documents
     .filter((doc) => {
@@ -38,13 +82,17 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
       return 0; // default order
     });
 
+  const totalPages = Math.max(1, Math.ceil(filteredDocs.length / pageSize));
+  const activePage = Math.min(currentPage, totalPages);
+  const paginatedDocs = filteredDocs.slice((activePage - 1) * pageSize, activePage * pageSize);
+
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto space-y-8">
       {/* 1. Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-[#E6E0D6]">
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-[#979087]">Audit & Analysis Archive</span>
-          <h1 className="font-serif text-3xl sm:text-4xl text-[#1D1B18] mt-1 font-normal tracking-tight">
+          <h1 className="font-display text-3xl sm:text-4xl text-[#1D1B18] mt-1 font-normal tracking-tight">
             Document History
           </h1>
           <p className="text-sm text-[#716B63] mt-1">
@@ -61,6 +109,18 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
         </Button>
       </div>
 
+      {deleteError && (
+        <div className="p-4 rounded-xl bg-[#FCE4DF] border border-[#F7C6BE] text-[#A83224] text-xs flex items-center justify-between shadow-sm">
+          <span>{deleteError}</span>
+          <button
+            onClick={() => setDeleteError(null)}
+            className="underline font-medium hover:text-[#782419] ml-4 shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* 2. Search & Filter Bar */}
       <div className="p-4 rounded-xl bg-[#FFFDFA] border border-[#E6E0D6] shadow-whisper flex flex-wrap items-center justify-between gap-4">
         {/* Search Input */}
@@ -70,7 +130,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
             type="text"
             placeholder="Search document names or keywords..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full bg-[#F7F4EE] border border-[#E6E0D6] rounded-xl pl-9 pr-4 py-2 text-xs text-[#1D1B18] placeholder-[#979087] focus:outline-none focus:border-[#1C1B19]"
           />
         </div>
@@ -80,7 +140,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
           {/* File Type Filter */}
           <select
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
+            onChange={(e) => handleFilterTypeChange(e.target.value)}
             className="bg-[#F7F4EE] border border-[#E6E0D6] rounded-xl px-3 py-2 text-xs text-[#1D1B18] focus:outline-none"
           >
             <option value="all">All Formats</option>
@@ -91,7 +151,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
           {/* Status Filter */}
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => handleFilterStatusChange(e.target.value)}
             className="bg-[#F7F4EE] border border-[#E6E0D6] rounded-xl px-3 py-2 text-xs text-[#1D1B18] focus:outline-none"
           >
             <option value="all">All Statuses</option>
@@ -102,7 +162,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
           {/* Sort By */}
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) => handleSortByChange(e.target.value as any)}
             className="bg-[#F7F4EE] border border-[#E6E0D6] rounded-xl px-3 py-2 text-xs text-[#1D1B18] focus:outline-none"
           >
             <option value="date">Sort: Recent First</option>
@@ -134,7 +194,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E6E0D6]/70">
-                {filteredDocs.map((doc) => (
+                {paginatedDocs.map((doc) => (
                   <tr
                     key={doc.id}
                     onClick={() => onNavigate('results', doc.id)}
@@ -212,6 +272,18 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
                         >
                           Audit Report
                         </button>
+                        <button
+                          onClick={() => handleDeleteDocument(doc.id, doc.name)}
+                          disabled={deletingId === doc.id}
+                          className="p-1.5 rounded-lg text-[#979087] hover:text-[#A83224] hover:bg-[#FCE4DF] transition-colors disabled:opacity-40"
+                          title="Delete contract"
+                        >
+                          {deletingId === doc.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#A83224]" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -223,13 +295,27 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({ onNavigate }) => {
 
         {/* Pagination Footer */}
         <div className="p-4 border-t border-[#E6E0D6] bg-[#F7F4EE]/50 flex items-center justify-between text-xs text-[#716B63]">
-          <span>Showing {filteredDocs.length} of {documents.length} contracts</span>
+          <span>
+            Showing {filteredDocs.length === 0 ? 0 : (activePage - 1) * pageSize + 1}–{Math.min(filteredDocs.length, activePage * pageSize)} of {filteredDocs.length} contracts
+          </span>
           <div className="flex items-center gap-1">
-            <button disabled className="p-1.5 rounded hover:bg-[#EAE5DC] disabled:opacity-40">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={activePage <= 1}
+              className="p-1.5 rounded hover:bg-[#EAE5DC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Previous page"
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-2 py-0.5 rounded bg-[#FFFDFA] border border-[#E6E0D6] font-medium text-[#1D1B18]">1</span>
-            <button disabled className="p-1.5 rounded hover:bg-[#EAE5DC] disabled:opacity-40">
+            <span className="px-2.5 py-0.5 rounded bg-[#FFFDFA] border border-[#E6E0D6] font-medium text-[#1D1B18]">
+              {activePage} / {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={activePage >= totalPages}
+              className="p-1.5 rounded hover:bg-[#EAE5DC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              title="Next page"
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

@@ -1,15 +1,16 @@
 """
 Axiom Authentication Routes
-User registration, login, and profile identity.
+User registration, login, logout, and profile identity with HttpOnly cookie and Bearer support.
 """
 
 import uuid
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.orm import Session
 
 from backend.app.api.deps import get_current_active_user
+from backend.app.core.config import settings
 from backend.app.core.errors import ConflictError, UnauthorizedError
-from backend.app.core.security import create_access_token, hash_password, verify_password
+from backend.app.core.security import create_access_token, hash_password, login_rate_limiter, verify_password
 from backend.app.db.session import get_db
 from backend.app.models.user import User
 from backend.app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserSafeResponse
@@ -17,8 +18,22 @@ from backend.app.schemas.auth import LoginRequest, RegisterRequest, TokenRespons
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
+def _set_auth_cookie(response: Response, token: str) -> None:
+    """Sets a secure HttpOnly cookie containing the access token."""
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax",
+        secure=settings.is_production,
+        path="/",
+    )
+
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def register(request: RegisterRequest, db: Session = Depends(get_db)):
+def register(request: RegisterRequest, response: Response, db: Session = Depends(get_db)):
     clean_email = request.email.lower().strip()
     existing = db.query(User).filter(User.email == clean_email).first()
     if existing:
@@ -39,6 +54,7 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     token = create_access_token({"sub": new_user.id, "email": new_user.email})
+    _set_auth_cookie(response, token)
 
     return TokenResponse(
         token=token,
@@ -56,13 +72,24 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(request: LoginRequest, db: Session = Depends(get_db)):
+def login(request: LoginRequest, raw_request: Request, response: Response, db: Session = Depends(get_db)):
     clean_email = request.email.lower().strip()
+    client_ip = raw_request.client.host if raw_request.client else "local"
+    rate_limit_key = f"{clean_email}:{client_ip}"
+
+    # Enforce brute-force rate limit
+    login_rate_limiter.check_rate_limit(rate_limit_key)
+
     user = db.query(User).filter(User.email == clean_email).first()
     if not user or not verify_password(request.password, user.password_hash):
+        login_rate_limiter.record_failed_attempt(rate_limit_key)
         raise UnauthorizedError(message="Invalid email or password", code="INVALID_CREDENTIALS")
 
+    # Login succeeded: clear failed attempts
+    login_rate_limiter.record_successful_login(rate_limit_key)
+
     token = create_access_token({"sub": user.id, "email": user.email})
+    _set_auth_cookie(response, token)
 
     return TokenResponse(
         token=token,
@@ -77,6 +104,18 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             created_at=user.created_at,
         ),
     )
+
+
+@router.post("/logout")
+def logout(response: Response):
+    """Logs out user by clearing the HttpOnly authentication cookie."""
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        httponly=True,
+        samesite="lax",
+    )
+    return {"message": "Logged out successfully"}
 
 
 @router.get("/me", response_model=UserSafeResponse, tags=["Authentication"])

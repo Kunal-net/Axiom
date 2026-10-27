@@ -110,8 +110,12 @@ class EvidenceValidator:
                 fallback_page=raw.page_number or 1,
             )
 
-            # Determine section
-            section = (raw.section or "").strip()
+            # Determine genuine section anchored in source text layout
+            grounded_section = contract_segmenter.find_section_for_excerpt(
+                source_text,
+                quote_to_use,
+            )
+            section = grounded_section or (raw.section or "").strip()
             if not section:
                 section = f"Page {grounded_page} Clause"
 

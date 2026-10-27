@@ -69,6 +69,11 @@ class ProcessingError(AxiomException):
         super().__init__(message=message, code=code, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, details=details)
 
 
+class RateLimitError(AxiomException):
+    def __init__(self, message: str = "Too many login attempts. Please try again later.", code: str = "TOO_MANY_REQUESTS", details: Optional[Dict[str, Any]] = None):
+        super().__init__(message=message, code=code, status_code=status.HTTP_429_TOO_MANY_REQUESTS, details=details)
+
+
 def format_error_response(status_code: int, code: str, message: str, details: Optional[Dict[str, Any]] = None) -> JSONResponse:
     req_id = request_id_ctx.get() or "req-unknown"
     return JSONResponse(

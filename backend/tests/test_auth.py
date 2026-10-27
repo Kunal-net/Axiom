@@ -95,3 +95,77 @@ def test_user_profile_get_and_update(client: TestClient, auth_headers_a: dict):
     updated = res_put.json()
     assert updated["organization"] == "Updated Creative Studio"
     assert updated["riskSensitivity"] == "strict"
+
+
+def test_auth_cookie_flow(client: TestClient):
+    # Register sets cookie
+    reg_res = client.post(
+        "/api/v1/auth/register",
+        json={"email": "cookieuser@example.com", "password": "CookiePassword123!", "name": "Cookie User"},
+    )
+    assert reg_res.status_code == 201
+    assert "access_token" in reg_res.cookies
+
+    # Use cookie on /api/v1/auth/me without Authorization header
+    client.cookies.set("access_token", reg_res.cookies["access_token"])
+    me_res = client.get("/api/v1/auth/me")
+    assert me_res.status_code == 200
+    assert me_res.json()["email"] == "cookieuser@example.com"
+
+    # Logout clears cookie
+    logout_res = client.post("/api/v1/auth/logout")
+    assert logout_res.status_code == 200
+    assert logout_res.json()["message"] == "Logged out successfully"
+    set_cookie_header = logout_res.headers.get("set-cookie", "")
+    assert "access_token" in set_cookie_header
+
+
+def test_login_rate_limiting(client: TestClient):
+    from backend.app.core.security import login_rate_limiter
+    login_rate_limiter._attempts.clear()
+
+    # Register user
+    client.post(
+        "/api/v1/auth/register",
+        json={"email": "bruteforce@example.com", "password": "LegitPassword123!", "name": "Target"},
+    )
+
+    # Attempt 5 wrong passwords -> 401
+    for i in range(5):
+        res = client.post(
+            "/api/v1/auth/login",
+            json={"email": "bruteforce@example.com", "password": f"WrongPwd{i}!"},
+        )
+        assert res.status_code == 401
+
+    # 6th attempt should be rate limited with 429
+    res_limit = client.post(
+        "/api/v1/auth/login",
+        json={"email": "bruteforce@example.com", "password": "WrongPwdAgain!"},
+    )
+    assert res_limit.status_code == 429
+    assert res_limit.json()["error"]["code"] == "TOO_MANY_ATTEMPTS"
+
+
+def test_protected_routes_reject_unauthenticated(client: TestClient):
+    client.cookies.clear()
+    # Unauthenticated /documents
+    doc_res = client.get("/api/v1/documents")
+    assert doc_res.status_code == 401
+    assert doc_res.json()["error"]["code"] == "UNAUTHORIZED"
+
+    # Unauthenticated /user/profile
+    prof_res = client.get("/api/v1/user/profile")
+    assert prof_res.status_code == 401
+    assert prof_res.json()["error"]["code"] == "UNAUTHORIZED"
+
+    # Unauthenticated /auth/me
+    me_res = client.get("/api/v1/auth/me")
+    assert me_res.status_code == 401
+    assert me_res.json()["error"]["code"] == "UNAUTHORIZED"
+
+    # Invalid Bearer token
+    bad_token_res = client.get("/api/v1/auth/me", headers={"Authorization": "Bearer invalid_token_123"})
+    assert bad_token_res.status_code == 401
+    assert bad_token_res.json()["error"]["code"] == "INVALID_TOKEN"
+

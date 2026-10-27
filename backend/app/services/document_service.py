@@ -97,6 +97,13 @@ class DocumentService:
         uploaded_at_display = self.format_relative_time(doc.created_at)
         last_analyzed_display = self.format_relative_time(doc.last_analyzed_at) if doc.last_analyzed_at else "Pending"
 
+        provider = "groq"
+        model_name = None
+        if doc.analyses:
+            provider = doc.analyses[0].provider
+            if doc.analyses[0].structured_result and isinstance(doc.analyses[0].structured_result, dict):
+                model_name = doc.analyses[0].structured_result.get("model_name")
+
         return ContractDocumentResponse(
             id=doc.id,
             name=doc.name,
@@ -113,6 +120,9 @@ class DocumentService:
             ),
             clauses=clauses,
             pageCount=doc.page_count,
+            provider=provider,
+            model_name=model_name,
+            extracted_text=doc.extracted_text,
         )
 
     async def upload_document(
@@ -379,12 +389,25 @@ class DocumentService:
         db: Session,
     ) -> DocumentComparisonResponse:
         doc1 = db.query(Document).filter(Document.id == original_doc_id).first()
-        doc2 = db.query(Document).filter(Document.id == revised_doc_id).first()
+        if not doc1 or doc1.owner_id != owner_id:
+            raise NotFoundError(message=f"Original document '{original_doc_id}' not found", code="DOCUMENT_NOT_FOUND")
 
-        title1 = doc1.name if doc1 else original_doc_id
-        title2 = doc2.name if doc2 else revised_doc_id
-        text1 = doc1.extracted_text if doc1 and doc1.extracted_text else ""
-        text2 = doc2.extracted_text if doc2 and doc2.extracted_text else ""
+        doc2 = db.query(Document).filter(Document.id == revised_doc_id).first()
+        if not doc2 or doc2.owner_id != owner_id:
+            raise NotFoundError(message=f"Comparison document '{revised_doc_id}' not found", code="DOCUMENT_NOT_FOUND")
+
+        if original_doc_id == revised_doc_id:
+            return DocumentComparisonResponse(
+                comparisonId=f"comp-{int(datetime.now().timestamp())}",
+                originalDocId=original_doc_id,
+                revisedDocId=revised_doc_id,
+                diffs=[],
+            )
+
+        title1 = doc1.name
+        title2 = doc2.name
+        text1 = doc1.extracted_text or ""
+        text2 = doc2.extracted_text or ""
 
         diffs = analysis_service.compare_documents(
             original_title=title1,

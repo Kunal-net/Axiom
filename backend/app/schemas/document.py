@@ -24,6 +24,9 @@ class ContractDocumentResponse(BaseModel):
     summary: str = ""
     clauses: List[ClauseFindingSchema] = Field(default_factory=list)
     page_count: int = Field(default=1, alias="pageCount")
+    provider: Optional[str] = "groq"
+    model_name: Optional[str] = Field(default=None, alias="modelName")
+    extracted_text: Optional[str] = Field(default=None, alias="extractedText")
 
 
 class DocumentListResponse(BaseModel):

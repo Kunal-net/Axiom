@@ -4,7 +4,8 @@ import {
   UserProfile, 
   ContractTemplate, 
   DocumentListResponse, 
-  DocumentComparisonResponse 
+  DocumentComparisonResponse,
+  HealthCheckResponse
 } from '../types/contract';
 import { 
   PRIMARY_CONTRACT, 
@@ -14,29 +15,44 @@ import {
   CONTRACT_TEMPLATES 
 } from '../data/sampleContracts';
 import { appConfig } from '../config/env';
-import { apiClient } from './apiClient';
+import { apiClient, ApiClient } from './apiClient';
 
 /**
  * Unified Contract Service
  * Handles data access for contracts, legal diffs, templates, and user preferences.
  * Supports seamless switching between in-memory mock mode and live backend REST endpoints.
  */
-class ContractService {
+export class ContractService {
   private documents: ContractDocument[] = [...SAMPLE_DOCUMENTS];
   private userProfile: UserProfile = { ...INITIAL_USER_PROFILE };
   private templates: ContractTemplate[] = [...CONTRACT_TEMPLATES];
-  public readonly isMock: boolean = appConfig.useMockData;
-  public readonly apiBaseUrl: string = appConfig.apiBaseUrl;
+  public readonly isMock: boolean;
+  public readonly apiBaseUrl: string;
+  private readonly client: ApiClient;
+
+  constructor(options?: { isMock?: boolean; apiBaseUrl?: string; client?: ApiClient }) {
+    this.isMock = options?.isMock !== undefined ? options.isMock : appConfig.useMockData;
+    this.apiBaseUrl = options?.apiBaseUrl || appConfig.apiBaseUrl;
+    this.client = options?.client || (options?.apiBaseUrl ? new ApiClient(options.apiBaseUrl) : apiClient);
+  }
 
   /**
    * Health and connectivity probe for live backend
    */
-  public async checkHealth(): Promise<{ status: string; version?: string } | null> {
+  public async checkHealth(): Promise<HealthCheckResponse | null> {
     if (this.isMock) {
-      return { status: 'mock_active', version: '2.4.0' };
+      return {
+        status: 'mock_active',
+        version: '2.4.0',
+        ai: {
+          status: 'active',
+          provider: 'in-memory-simulation',
+          model: 'demo-rules',
+        },
+      };
     }
     try {
-      return await apiClient.get<{ status: string; version?: string }>('/health', { timeoutMs: 3000 });
+      return await this.client.get<HealthCheckResponse>('/health', { timeoutMs: 3000 });
     } catch {
       return null;
     }
@@ -48,14 +64,14 @@ class ContractService {
   public async getDocuments(): Promise<ContractDocument[]> {
     if (!this.isMock) {
       try {
-        const response = await apiClient.get<DocumentListResponse | ContractDocument[]>('/documents');
+        const response = await this.client.get<DocumentListResponse | ContractDocument[]>('/documents');
         if (Array.isArray(response)) {
           return response;
         }
         return response.documents || [];
       } catch (err) {
-        console.warn('[Axiom Service] Failed to fetch live documents from backend, falling back to mock fixtures:', err);
-        return [...this.documents];
+        console.warn('[Axiom Service] Failed to fetch live documents from backend:', err);
+        return [];
       }
     }
 
@@ -70,9 +86,10 @@ class ContractService {
   public async getDocumentById(id: string): Promise<ContractDocument | undefined> {
     if (!this.isMock) {
       try {
-        return await apiClient.get<ContractDocument>(`/documents/${id}`);
+        return await this.client.get<ContractDocument>(`/documents/${id}`);
       } catch (err) {
-        console.warn(`[Axiom Service] Failed to fetch live document ${id}, falling back:`, err);
+        console.warn(`[Axiom Service] Failed to fetch live document ${id}:`, err);
+        return undefined;
       }
     }
 
@@ -88,7 +105,12 @@ class ContractService {
   public async deleteDocument(id: string): Promise<boolean> {
     if (!this.isMock) {
       try {
-        await apiClient.delete(`/documents/${id}`);
+        await this.client.delete(`/documents/${id}`);
+        const idx = this.documents.findIndex((d) => d.id === id);
+        if (idx !== -1) {
+          this.documents.splice(idx, 1);
+        }
+        return true;
       } catch (err) {
         console.warn(`[Axiom Service] Failed to delete live document ${id}:`, err);
         return false;
@@ -101,6 +123,10 @@ class ContractService {
       return true;
     }
     return false;
+  }
+
+  public getDefaultDocument(): ContractDocument {
+    return PRIMARY_CONTRACT;
   }
 
   /**
@@ -119,53 +145,57 @@ class ContractService {
   ): Promise<ContractDocument> {
     const fileSizeFormatted = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
 
+    // 1. LIVE BACKEND MODE
     if (!this.isMock) {
-      try {
-        const formData = new FormData();
-        if (file instanceof File) {
-          formData.append('file', file);
-        } else {
-          formData.append('file', new Blob(['Mock payload for test'], { type: 'application/pdf' }), file.name);
-        }
-
-        onStageChange?.('Uploading document to secure enclave...', 25);
-        const uploaded = await apiClient.upload<ContractDocument>('/documents/upload', formData);
-
-        onStageChange?.('Evaluating liabilities, indemnities, and IP rights...', 65);
-        const analyzed = await apiClient.post<ContractDocument>(`/documents/${uploaded.id}/analyze`, {
-          riskSensitivity: this.userProfile.riskSensitivity,
-          explanationStyle: this.userProfile.explanationStyle,
-          autoGenerateRedlines: this.userProfile.autoGenerateRedlines,
-        });
-
-        onStageChange?.('Synthesizing plain-English explanations & revisions...', 100);
-        return analyzed;
-      } catch (err) {
-        console.warn('[Axiom Service] Live analysis failed, falling back to enclave simulation:', err);
+      const formData = new FormData();
+      if (file instanceof File) {
+        formData.append('file', file);
+      } else {
+        formData.append('file', new Blob(['Mock payload for test'], { type: 'application/pdf' }), file.name);
       }
+
+      onStageChange?.('Uploading contract to backend...', 25);
+      const uploaded = await this.client.upload<ContractDocument>('/documents/upload', formData);
+
+      onStageChange?.('Invoking AI model & analyzing legal risk clauses...', 65);
+      const analyzed = await this.client.post<ContractDocument>(`/documents/${uploaded.id}/analyze`, {
+        riskSensitivity: this.userProfile.riskSensitivity,
+        explanationStyle: this.userProfile.explanationStyle,
+        autoGenerateRedlines: this.userProfile.autoGenerateRedlines,
+      });
+
+      onStageChange?.('Synthesizing plain-English explanations & counter-proposals...', 100);
+      return analyzed;
     }
 
-    // Mock Enclave Simulation
-    onStageChange?.('Uploading document to secure enclave...', 25);
-    await new Promise((r) => setTimeout(r, 500));
-
-    onStageChange?.('Extracting document structure & clause hierarchy...', 55);
-    await new Promise((r) => setTimeout(r, 600));
-
-    onStageChange?.('Evaluating liabilities, indemnities, and IP rights...', 85);
-    await new Promise((r) => setTimeout(r, 700));
-
-    onStageChange?.('Synthesizing plain-English explanations & revisions...', 100);
+    // 2. EXPLICIT DEMO / MOCK MODE
+    onStageChange?.('[DEMO MODE] Uploading document to in-memory simulation...', 25);
     await new Promise((r) => setTimeout(r, 400));
 
+    onStageChange?.('[DEMO MODE] Extracting document structure & clause hierarchy...', 55);
+    await new Promise((r) => setTimeout(r, 400));
+
+    onStageChange?.('[DEMO MODE] Evaluating liabilities, indemnities, and IP rights...', 85);
+    await new Promise((r) => setTimeout(r, 400));
+
+    onStageChange?.('[DEMO MODE] Synthesizing plain-English explanations & revisions...', 100);
+    await new Promise((r) => setTimeout(r, 200));
+
+    const matchedSample = SAMPLE_DOCUMENTS.find(
+      (s) => s.name.toLowerCase() === file.name.toLowerCase()
+    );
+    const baseTemplate = matchedSample || PRIMARY_CONTRACT;
+
     const newDoc: ContractDocument = {
-      ...PRIMARY_CONTRACT,
-      id: `doc-${Date.now()}`,
+      ...baseTemplate,
+      id: `doc-demo-${Date.now()}`,
       name: file.name,
       fileSize: fileSizeFormatted,
       uploadedAt: 'Just now',
       lastAnalyzedAt: 'Just now',
-      status: 'needs_review'
+      status: 'needs_review',
+      provider: 'mock',
+      modelName: 'demo-in-memory-simulation',
     };
 
     this.documents.unshift(newDoc);
@@ -180,15 +210,11 @@ class ContractService {
     revisedDocId: string = 'doc-msa-counter'
   ): Promise<DocumentDiff[]> {
     if (!this.isMock) {
-      try {
-        const response = await apiClient.post<DocumentComparisonResponse>('/documents/compare', {
-          originalDocId,
-          revisedDocId,
-        });
-        return response.diffs;
-      } catch (err) {
-        console.warn('[Axiom Service] Failed to get live comparison diffs, falling back to mock fixtures:', err);
-      }
+      const response = await this.client.post<DocumentComparisonResponse>('/documents/compare', {
+        originalDocId,
+        revisedDocId,
+      });
+      return response.diffs || [];
     }
 
     return new Promise((resolve) => {
@@ -205,7 +231,7 @@ class ContractService {
     if (clause) {
       clause.bookmarked = !clause.bookmarked;
       if (!this.isMock) {
-        apiClient.patch(`/documents/${docId}/clauses/${clauseId}`, { bookmarked: clause.bookmarked }).catch((err) => {
+        this.client.patch(`/documents/${docId}/clauses/${clauseId}`, { bookmarked: clause.bookmarked }).catch((err) => {
           console.warn('[Axiom Service] Failed to persist clause bookmark:', err);
         });
       }
@@ -223,7 +249,7 @@ class ContractService {
     if (clause) {
       clause.reviewed = reviewed;
       if (!this.isMock) {
-        apiClient.patch(`/documents/${docId}/clauses/${clauseId}`, { reviewed }).catch((err) => {
+        this.client.patch(`/documents/${docId}/clauses/${clauseId}`, { reviewed }).catch((err) => {
           console.warn('[Axiom Service] Failed to persist clause reviewed state:', err);
         });
       }
@@ -245,7 +271,7 @@ class ContractService {
   public async getUserProfile(): Promise<UserProfile> {
     if (!this.isMock) {
       try {
-        const profile = await apiClient.get<UserProfile>('/user/profile');
+        const profile = await this.client.get<UserProfile>('/user/profile');
         this.userProfile = profile;
         return profile;
       } catch (err) {
@@ -266,7 +292,7 @@ class ContractService {
 
     if (!this.isMock) {
       try {
-        const result = await apiClient.put<UserProfile>('/user/profile', this.userProfile);
+        const result = await this.client.put<UserProfile>('/user/profile', this.userProfile);
         this.userProfile = result;
         return result;
       } catch (err) {

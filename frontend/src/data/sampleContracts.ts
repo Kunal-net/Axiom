@@ -434,10 +434,10 @@ export const CONTRACT_TEMPLATES: ContractTemplate[] = [
 ];
 
 export const INITIAL_USER_PROFILE: UserProfile = {
-  name: 'Kunal',
+  name: 'Kunal Suryanshi',
   email: 'kunal@axiom.legal',
-  role: 'Freelancer / Independent Consultant',
-  organization: 'Kunal Freelance',
+  role: 'Student',
+  organization: 'Axiom Workspace',
   riskSensitivity: 'standard',
   explanationStyle: 'plain_english',
   autoGenerateRedlines: true,

@@ -38,6 +38,22 @@ export function validateEnv(): AppConfig {
     }
   }
 
+  // Harmonize localhost vs 127.0.0.1 with the current browser window to avoid IPv6/IPv4 mismatch
+  if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+    try {
+      const parsed = new URL(apiBaseUrl);
+      if (
+        (window.location.hostname === '127.0.0.1' && parsed.hostname === 'localhost') ||
+        (window.location.hostname === 'localhost' && parsed.hostname === '127.0.0.1')
+      ) {
+        parsed.hostname = window.location.hostname;
+        apiBaseUrl = parsed.origin;
+      }
+    } catch {
+      // keep original apiBaseUrl
+    }
+  }
+
   // Determine mock mode: defaults to true if not explicitly set to 'false'
   const useMockData = rawMock === undefined || rawMock === '' ? true : rawMock === 'true';
 

@@ -81,7 +81,13 @@ class GroqProvider(BaseLLMProvider):
                         retry_after = e.response.headers.get("retry-after")
                         if retry_after:
                             try:
-                                wait_time = max(float(retry_after), wait_time)
+                                retry_val = float(retry_after)
+                                if retry_val > 5.0:
+                                    logger.warning(
+                                        f"Groq 429 rate limit retry-after of {retry_val}s exceeds max interactive retry window. Triggering immediate safe fallback."
+                                    )
+                                    break
+                                wait_time = max(retry_val, wait_time)
                             except ValueError:
                                 pass
                     logger.warning(
